@@ -27,6 +27,8 @@ use OCP\AppFramework\Db\Entity;
  * @method void setPosition(int $position)
  * @method int getEnabled()
  * @method void setEnabled(int $enabled)
+ * @method string|null getUserId()
+ * @method void setUserId(?string $userId)
  * @method \DateTime getCreatedAt()
  * @method void setCreatedAt(\DateTime $createdAt)
  * @method \DateTime getUpdatedAt()
@@ -42,6 +44,7 @@ class Link extends Entity implements JsonSerializable {
 	protected $groupsJson;
 	protected $position = 0;
 	protected $enabled = 1;
+	protected ?string $userId = null;
 	protected $createdAt;
 	protected $updatedAt;
 
@@ -56,6 +59,7 @@ class Link extends Entity implements JsonSerializable {
 		$this->addType('groupsJson', 'string');
 		$this->addType('position', 'integer');
 		$this->addType('enabled', 'integer');
+		$this->addType('userId', 'string');
 		$this->addType('createdAt', 'datetime');
 		$this->addType('updatedAt', 'datetime');
 	}
@@ -78,6 +82,20 @@ class Link extends Entity implements JsonSerializable {
 		$this->setGroupsJson(json_encode($groups));
 	}
 
+	/**
+	 * Check if this is a user-private link
+	 */
+	public function isUserLink(): bool {
+		return $this->userId !== null;
+	}
+
+	/**
+	 * Check if this is an admin/global link
+	 */
+	public function isAdminLink(): bool {
+		return $this->userId === null;
+	}
+
 	public function jsonSerialize(): array {
 		return [
 			'id' => $this->getId(),
@@ -90,6 +108,7 @@ class Link extends Entity implements JsonSerializable {
 			'groups' => $this->getGroups(),
 			'position' => $this->getPosition(),
 			'enabled' => $this->getEnabled(),
+			'userId' => $this->getUserId(),
 			'createdAt' => $this->getCreatedAt()?->format(\DateTime::ATOM),
 			'updatedAt' => $this->getUpdatedAt()?->format(\DateTime::ATOM),
 		];

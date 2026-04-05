@@ -45,5 +45,7 @@ Admin Panel:
     <settings>
         <admin-section>OCA\DashLink\Settings\AdminSection</admin-section>
         <admin>OCA\DashLink\Settings\Admin</admin>
+        <personal-section>OCA\DashLink\Settings\PersonalSection</personal-section>
+        <personal>OCA\DashLink\Settings\Personal</personal>
     </settings>
 </info>

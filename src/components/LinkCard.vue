@@ -147,10 +147,6 @@ export default defineComponent({
 	padding: 12px 8px;
 }
 
-// Only fade out content for non-flip effects
-.link-card:not(.effect-flip):hover .card-content {
-	opacity: 0;
-}
 
 .icon-wrapper {
 	flex-shrink: 0;

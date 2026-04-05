@@ -6,6 +6,8 @@ export function useSettings() {
 	const hoverEffect = ref('blur')
 	const widgetTitle = ref('DashLink')
 	const availableEffects = ref([])
+	const userLinksEnabled = ref(true)
+	const userLinkLimit = ref(10)
 	const loading = ref(false)
 
 	async function fetchSettings() {
@@ -15,6 +17,8 @@ export function useSettings() {
 			hoverEffect.value = response.data.hoverEffect
 			widgetTitle.value = response.data.widgetTitle
 			availableEffects.value = response.data.availableEffects
+			userLinksEnabled.value = response.data.userLinksEnabled ?? true
+			userLinkLimit.value = response.data.userLinkLimit ?? 10
 		} catch (error) {
 			console.error('Failed to fetch settings:', error)
 			throw error
@@ -29,7 +33,9 @@ export function useSettings() {
 				generateUrl('/apps/dashlink/api/v1/admin/settings'),
 				{
 					hoverEffect: hoverEffect.value,
-					widgetTitle: widgetTitle.value
+					widgetTitle: widgetTitle.value,
+					userLinksEnabled: userLinksEnabled.value,
+					userLinkLimit: userLinkLimit.value
 				}
 			)
 		} catch (error) {
@@ -47,6 +53,8 @@ export function useSettings() {
 		hoverEffect,
 		widgetTitle,
 		availableEffects,
+		userLinksEnabled,
+		userLinkLimit,
 		loading,
 		fetchSettings,
 		saveSettings,

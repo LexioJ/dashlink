@@ -18,7 +18,7 @@ build/
 .php-cs-fixer.cache
 
 # Vite build outputs (reference widget)
-js/
+# js/ - Now committed for deployment
 
 # IDE files
 .idea/

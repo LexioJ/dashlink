@@ -1,50 +1,17 @@
 <template>
-	<div class="dashlink-admin">
-		<div class="admin-header">
-			<h2>DashLink Settings</h2>
-			<p class="subtitle">Manage external links displayed on the dashboard</p>
+	<div class="dashlink-personal">
+		<div class="personal-header">
+			<h2>My Links</h2>
+			<p class="subtitle">Manage your personal dashboard links</p>
 		</div>
 
-		<div class="admin-layout">
-			<div class="admin-main">
-				<!-- Widget Title -->
-				<div class="setting-section">
-					<label for="widget-title">Widget Title</label>
-					<input
-						id="widget-title"
-						v-model="widgetTitle"
-						type="text"
-						placeholder="DashLink"
-						@input="debouncedSaveSettings" />
-					<p class="setting-hint">The title displayed in the dashboard widget</p>
-				</div>
-
-				<!-- Effect Selector -->
-				<div class="setting-section">
-					<EffectSelector v-model="hoverEffect" @update:modelValue="saveSettings" />
-				</div>
-
-				<!-- User Links Settings -->
-				<div class="setting-section">
-					<h4>User Links</h4>
-					<p class="setting-hint">Allow users to create their own personal links visible only to them.</p>
-					<div class="user-links-settings">
-						<NcCheckboxRadioSwitch
-							v-model="userLinksEnabled"
-							type="switch"
-							@update:modelValue="saveSettings">
-							Allow users to create personal links
-						</NcCheckboxRadioSwitch>
-						<div v-if="userLinksEnabled" class="user-limit-setting">
-							<label for="user-link-limit">Maximum links per user</label>
-							<input
-								id="user-link-limit"
-								v-model.number="userLinkLimit"
-								type="number"
-								min="1"
-								max="50"
-								@input="debouncedSaveSettings">
-						</div>
+		<div class="personal-layout">
+			<div class="personal-main">
+				<!-- Link Count and Limit -->
+				<div class="link-count-section">
+					<span class="link-count">{{ linkCount }} / {{ linkLimit }} links used</span>
+					<div class="progress-bar">
+						<div class="progress-fill" :style="{ width: progressPercent + '%' }" />
 					</div>
 				</div>
 
@@ -59,7 +26,7 @@
 								<template #icon>
 									<Upload :size="20" />
 								</template>
-								Import List
+								Import
 							</NcButton>
 							<NcButton
 								type="secondary"
@@ -67,10 +34,11 @@
 								<template #icon>
 									<Download :size="20" />
 								</template>
-								Export List
+								Export
 							</NcButton>
 							<NcButton
 								type="primary"
+								:disabled="linkCount >= linkLimit"
 								@click="showLinkForm = true">
 								<template #icon>
 									<Plus :size="20" />
@@ -87,7 +55,7 @@
 						@change="handleFileSelected">
 
 					<div v-if="links.length === 0" class="empty-state">
-						<p>No links yet. Click "Add Link" to create one.</p>
+						<p>No personal links yet. Click "Add Link" to create one.</p>
 					</div>
 
 					<div v-else class="links-list">
@@ -150,9 +118,8 @@
 					@close="closeLinkForm">
 					<div class="modal-content">
 						<h2>{{ editingLink ? 'Edit Link' : 'Add Link' }}</h2>
-						<LinkForm
+						<UserLinkForm
 							:link="editingLink"
-							:groups="groups"
 							@save="handleSaveLink"
 							@cancel="closeLinkForm"
 							@icon-updated="handleIconUpdated" />
@@ -160,18 +127,12 @@
 				</NcModal>
 			</div>
 
-			<div class="admin-sidebar">
-				<div class="preview-controls">
+			<div class="personal-sidebar">
+				<div class="preview-info">
 					<h3>Preview</h3>
-					<div class="group-filter-section">
-						<label>Filter by Group (Simulation)</label>
-						<GroupPicker
-							v-model="previewFilterGroups"
-							placeholder="All users (no filter)"
-							hint="Simulate how the widget appears to specific groups" />
-					</div>
+					<p class="hint">Your links will appear in the dashboard widget after admin links.</p>
 				</div>
-				<WidgetPreview :links="filteredPreviewLinks" :effect="hoverEffect" :title="widgetTitle" />
+				<WidgetPreview :links="previewLinks" :effect="hoverEffect" title="DashLink" />
 			</div>
 		</div>
 	</div>
@@ -179,9 +140,9 @@
 
 <script>
 import { defineComponent, ref, computed, onMounted } from 'vue'
+import { loadState } from '@nextcloud/initial-state'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcModal from '@nextcloud/vue/components/NcModal'
-import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import Plus from 'vue-material-design-icons/Plus.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
@@ -190,20 +151,15 @@ import EyeOff from 'vue-material-design-icons/EyeOff.vue'
 import Download from 'vue-material-design-icons/Download.vue'
 import Upload from 'vue-material-design-icons/Upload.vue'
 import { showSuccess, showError } from '../utils/notifications.js'
-import EffectSelector from './EffectSelector.vue'
 import WidgetPreview from './WidgetPreview.vue'
-import LinkForm from './LinkForm.vue'
-import GroupPicker from './GroupPicker.vue'
-import { useLinks } from '../composables/useLinks'
-import { useGroups } from '../composables/useGroups'
-import { useSettings } from '../composables/useSettings'
+import UserLinkForm from './UserLinkForm.vue'
+import { useUserLinks } from '../composables/useUserLinks'
 
 export default defineComponent({
-	name: 'AdminPanel',
+	name: 'PersonalPanel',
 	components: {
 		NcButton,
 		NcModal,
-		NcCheckboxRadioSwitch,
 		Plus,
 		Pencil,
 		Delete,
@@ -211,70 +167,43 @@ export default defineComponent({
 		EyeOff,
 		Download,
 		Upload,
-		EffectSelector,
 		WidgetPreview,
-		LinkForm,
-		GroupPicker,
+		UserLinkForm,
 	},
 	setup() {
-		const { links, fetchLinks, createLink, updateLink, deleteLink, updateOrder, exportLinks, importLinks } = useLinks()
-		const { groups, fetchGroups } = useGroups()
-		const { hoverEffect, widgetTitle, userLinksEnabled, userLinkLimit, fetchSettings, saveSettings: saveSettingsComposable } = useSettings()
+		const { links, linkCount, linkLimit, fetchLinks, createLink, updateLink, deleteLink, updateOrder, exportLinks, importLinks } = useUserLinks()
 
 		const showLinkForm = ref(false)
 		const editingLink = ref(null)
-		const saveTimeout = ref(null)
-		const previewFilterGroups = ref([])
 		const draggingId = ref(null)
 		const dragOverId = ref(null)
 		const fileInput = ref(null)
+
+		// Get hover effect from app config (users use global effect)
+		const hoverEffect = ref('blur')
+		try {
+			hoverEffect.value = loadState('dashlink', 'hoverEffect', 'blur')
+		} catch (e) {
+			// Fallback to blur if initial state not available
+		}
 
 		const sortedLinks = computed(() => {
 			return [...links.value].sort((a, b) => a.position - b.position)
 		})
 
-		// Filter preview links by selected groups (simulation), then limit to 10
-		const filteredPreviewLinks = computed(() => {
-			// Start with enabled links only
-			let filtered = sortedLinks.value.filter(l => l.enabled)
+		const progressPercent = computed(() => {
+			if (linkLimit.value === 0) return 0
+			return Math.min((linkCount.value / linkLimit.value) * 100, 100)
+		})
 
-			// Apply group filter
-			if (previewFilterGroups.value.length === 0) {
-				// No filter - show only links with no group restrictions (available to all users)
-				filtered = filtered.filter(link => !link.groups || link.groups.length === 0)
-			} else {
-				// Filter links that match the selected preview groups
-				const selectedGroupIds = previewFilterGroups.value.map(g => g.id)
-				filtered = filtered.filter(link => {
-					// If link has no groups restriction, show it
-					if (!link.groups || link.groups.length === 0) {
-						return true
-					}
-					// Check if any of the link's groups match the preview filter groups
-					return link.groups.some(groupId => selectedGroupIds.includes(groupId))
-				})
-			}
-
-			// Limit to maximum 10 links for preview
-			return filtered.slice(0, 10)
+		// Preview only enabled links, limited to 10
+		const previewLinks = computed(() => {
+			return sortedLinks.value.filter(l => l.enabled).slice(0, 10)
 		})
 
 		onMounted(async () => {
-			await Promise.all([
-				fetchLinks(),
-				fetchGroups(),
-				fetchSettings(),
-			])
+			await fetchLinks()
 		})
-
-		function debouncedSaveSettings() {
-			if (saveTimeout.value) {
-				clearTimeout(saveTimeout.value)
-			}
-			saveTimeout.value = setTimeout(() => {
-				saveSettings()
-			}, 2000)
-		}
 
 		function editLink(link) {
 			editingLink.value = link
@@ -302,10 +231,7 @@ export default defineComponent({
 		}
 
 		async function handleIconUpdated(updatedLink) {
-			// Refresh the links list to show the updated icon
 			await fetchLinks()
-
-			// Update the editing link with the new icon URL
 			if (editingLink.value && updatedLink) {
 				editingLink.value = updatedLink
 			}
@@ -328,15 +254,6 @@ export default defineComponent({
 				showSuccess(link.enabled ? 'Link disabled' : 'Link enabled')
 			} catch (error) {
 				showError('Failed to update link: ' + error.message)
-			}
-		}
-
-		async function saveSettings() {
-			try {
-				await saveSettingsComposable()
-				showSuccess('Settings saved')
-			} catch (error) {
-				showError('Failed to save settings: ' + error.message)
 			}
 		}
 
@@ -371,7 +288,6 @@ export default defineComponent({
 				return
 			}
 
-			// Find indices
 			const sorted = sortedLinks.value
 			const draggedIndex = sorted.findIndex(l => l.id === draggedId)
 			const targetIndex = sorted.findIndex(l => l.id === targetLink.id)
@@ -381,12 +297,10 @@ export default defineComponent({
 				return
 			}
 
-			// Create new order
 			const newOrder = [...sorted]
 			const [draggedItem] = newOrder.splice(draggedIndex, 1)
 			newOrder.splice(targetIndex, 0, draggedItem)
 
-			// Update positions in links array
 			newOrder.forEach((link, index) => {
 				const linkInArray = links.value.find(l => l.id === link.id)
 				if (linkInArray) {
@@ -394,21 +308,18 @@ export default defineComponent({
 				}
 			})
 
-			// Save to server
 			try {
 				const linkIds = newOrder.map(l => l.id)
 				await updateOrder(linkIds)
 				showSuccess('Link order updated')
 			} catch (error) {
 				showError('Failed to update order: ' + error.message)
-				// Revert on error
 				await fetchLinks()
 			}
 
 			handleDragEnd()
 		}
 
-		// Export/Import handlers
 		async function handleExport() {
 			try {
 				const data = await exportLinks()
@@ -416,7 +327,7 @@ export default defineComponent({
 				const url = URL.createObjectURL(blob)
 				const link = document.createElement('a')
 				link.href = url
-				link.download = `dashlink-export-${new Date().toISOString().split('T')[0]}.json`
+				link.download = `my-dashlinks-${new Date().toISOString().split('T')[0]}.json`
 				document.body.appendChild(link)
 				link.click()
 				document.body.removeChild(link)
@@ -447,21 +358,18 @@ export default defineComponent({
 			} catch (error) {
 				showError('Failed to import links: ' + error.message)
 			} finally {
-				// Reset file input
 				event.target.value = ''
 			}
 		}
 
 		return {
 			links,
-			groups,
+			linkCount,
+			linkLimit,
 			hoverEffect,
-			widgetTitle,
-			userLinksEnabled,
-			userLinkLimit,
 			sortedLinks,
-			filteredPreviewLinks,
-			previewFilterGroups,
+			previewLinks,
+			progressPercent,
 			showLinkForm,
 			editingLink,
 			draggingId,
@@ -473,8 +381,6 @@ export default defineComponent({
 			handleIconUpdated,
 			confirmDelete,
 			toggleEnabled,
-			saveSettings,
-			debouncedSaveSettings,
 			handleDragStart,
 			handleDragEnd,
 			handleDragOver,
@@ -489,13 +395,13 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.dashlink-admin {
+.dashlink-personal {
 	padding: 20px;
 	max-width: 1400px;
 	margin: 0 auto;
 }
 
-.admin-header {
+.personal-header {
 	margin-bottom: 30px;
 
 	h2 {
@@ -511,7 +417,7 @@ export default defineComponent({
 	}
 }
 
-.admin-layout {
+.personal-layout {
 	display: grid;
 	grid-template-columns: 1fr;
 	gap: 30px;
@@ -521,78 +427,31 @@ export default defineComponent({
 	}
 }
 
-.setting-section {
+.link-count-section {
 	background: var(--color-main-background);
 	border: 1px solid var(--color-border);
 	border-radius: var(--border-radius-large);
-	padding: 20px;
+	padding: 16px 20px;
 	margin-bottom: 20px;
-	overflow: visible;
 
-	h4 {
-		margin: 0 0 8px 0;
-		font-size: 16px;
-		font-weight: 600;
-	}
-
-	label {
+	.link-count {
 		display: block;
-		font-weight: 600;
+		font-weight: 500;
 		margin-bottom: 8px;
 		font-size: 14px;
 	}
 
-	input[type="text"] {
-		width: 100%;
-		padding: 10px 12px;
-		border: 1px solid var(--color-border);
-		border-radius: var(--border-radius);
-		background: var(--color-main-background);
-		color: var(--color-main-text);
-		font-size: 14px;
+	.progress-bar {
+		height: 8px;
+		background: var(--color-background-dark);
+		border-radius: 4px;
+		overflow: hidden;
 
-		&:focus {
-			outline: none;
-			border-color: var(--color-primary-element);
-		}
-	}
-
-	input[type="number"] {
-		width: 80px;
-		padding: 8px 12px;
-		border: 1px solid var(--color-border);
-		border-radius: var(--border-radius);
-		background: var(--color-main-background);
-		color: var(--color-main-text);
-		font-size: 14px;
-
-		&:focus {
-			outline: none;
-			border-color: var(--color-primary-element);
-		}
-	}
-
-	.setting-hint {
-		margin: 8px 0 0 0;
-		font-size: 12px;
-		color: var(--color-text-maxcontrast);
-	}
-}
-
-.user-links-settings {
-	margin-top: 12px;
-
-	.user-limit-setting {
-		display: flex;
-		align-items: center;
-		gap: 12px;
-		margin-top: 12px;
-		padding-top: 12px;
-		border-top: 1px solid var(--color-border);
-
-		label {
-			margin: 0;
-			font-weight: 500;
+		.progress-fill {
+			height: 100%;
+			background: var(--color-primary-element);
+			border-radius: 4px;
+			transition: width 0.3s ease;
 		}
 	}
 }
@@ -609,6 +468,8 @@ export default defineComponent({
 	justify-content: space-between;
 	align-items: center;
 	margin-bottom: 20px;
+	flex-wrap: wrap;
+	gap: 12px;
 
 	h3 {
 		margin: 0;
@@ -620,6 +481,7 @@ export default defineComponent({
 .section-actions {
 	display: flex;
 	gap: 8px;
+	flex-wrap: wrap;
 }
 
 .links-list {
@@ -722,7 +584,7 @@ export default defineComponent({
 	}
 }
 
-.preview-controls {
+.preview-info {
 	background: var(--color-main-background);
 	border: 1px solid var(--color-border);
 	border-radius: var(--border-radius-large);
@@ -730,18 +592,15 @@ export default defineComponent({
 	margin-bottom: 16px;
 
 	h3 {
-		margin: 0 0 16px 0;
+		margin: 0 0 8px 0;
 		font-size: 16px;
 		font-weight: 600;
 	}
-}
 
-.group-filter-section {
-	label {
-		display: block;
-		font-weight: 500;
-		margin-bottom: 8px;
+	.hint {
+		margin: 0;
 		font-size: 13px;
+		color: var(--color-text-maxcontrast);
 	}
 }
 </style>

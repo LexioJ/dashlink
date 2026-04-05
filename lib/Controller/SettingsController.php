@@ -34,7 +34,12 @@ class SettingsController extends Controller {
 	 *
 	 * @AdminRequired
 	 */
-	public function update(?string $hoverEffect = null, ?string $widgetTitle = null): JSONResponse {
+	public function update(
+		?string $hoverEffect = null,
+		?string $widgetTitle = null,
+		?bool $userLinksEnabled = null,
+		?int $userLinkLimit = null
+	): JSONResponse {
 		try {
 			if ($hoverEffect !== null) {
 				$this->settingsService->setHoverEffect($hoverEffect);
@@ -42,6 +47,14 @@ class SettingsController extends Controller {
 
 			if ($widgetTitle !== null) {
 				$this->settingsService->setWidgetTitle($widgetTitle);
+			}
+
+			if ($userLinksEnabled !== null) {
+				$this->settingsService->setUserLinksEnabled($userLinksEnabled);
+			}
+
+			if ($userLinkLimit !== null) {
+				$this->settingsService->setUserLinkLimit($userLinkLimit);
 			}
 
 			return new JSONResponse(['status' => 'ok']);

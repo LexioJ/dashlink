@@ -17,6 +17,18 @@ return [
         ['name' => 'link#deleteIcon', 'url' => '/api/v1/admin/links/{id}/icon', 'verb' => 'DELETE'],
         ['name' => 'link#getGroups', 'url' => '/api/v1/admin/groups', 'verb' => 'GET'],
 
+        // User Link Routes (user-private links)
+        ['name' => 'userLink#index', 'url' => '/api/v1/user/links', 'verb' => 'GET'],
+        ['name' => 'userLink#create', 'url' => '/api/v1/user/links', 'verb' => 'POST'],
+        ['name' => 'userLink#exportLinks', 'url' => '/api/v1/user/links/export', 'verb' => 'GET'],
+        ['name' => 'userLink#importLinks', 'url' => '/api/v1/user/links/import', 'verb' => 'POST'],
+        ['name' => 'userLink#updateOrder', 'url' => '/api/v1/user/links/order', 'verb' => 'PUT'],
+        ['name' => 'userLink#update', 'url' => '/api/v1/user/links/{id}', 'verb' => 'PUT'],
+        ['name' => 'userLink#delete', 'url' => '/api/v1/user/links/{id}', 'verb' => 'DELETE'],
+        ['name' => 'userLink#uploadIcon', 'url' => '/api/v1/user/links/{id}/icon', 'verb' => 'POST'],
+        ['name' => 'userLink#deleteIcon', 'url' => '/api/v1/user/links/{id}/icon', 'verb' => 'DELETE'],
+        ['name' => 'userLink#getIcon', 'url' => '/api/v1/user/links/{id}/icon', 'verb' => 'GET'],
+
         // Settings Routes
         ['name' => 'settings#index', 'url' => '/api/v1/admin/settings', 'verb' => 'GET'],
         ['name' => 'settings#update', 'url' => '/api/v1/admin/settings', 'verb' => 'PUT'],
