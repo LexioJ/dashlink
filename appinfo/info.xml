@@ -43,6 +43,7 @@ Admin Panel:
  
     <dependencies>
         <nextcloud min-version="31" max-version="33"/>
+        <php min-version="8.2"/>
     </dependencies>
 
     <settings>

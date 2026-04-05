@@ -44,7 +44,7 @@ A Nextcloud dashboard widget that displays external website links with customiza
 ## Requirements
 
 - **Nextcloud**: 31–33
-- **PHP**: 8.1 or higher
+- **PHP**: 8.2 or higher
 - **Node.js**: 20.x or higher (22.x tested and working)
 - **npm**: 10.x or higher
 
