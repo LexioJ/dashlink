@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-04-05
+
+### Added
+- **User-private links**: Users can create personal dashboard links visible only to themselves, managed via Settings → Personal → DashLink. Feature is disabled by default; admins can enable it and set a per-user link limit (1–50, default 10). Includes full CRUD, drag-drop reorder, import/export, and icon upload. Admin links always appear first in the dashboard widget.
+
+### Fixed
+- **Group visibility**: Group names containing `.` (dot), ` ` (space), or other common special characters can now be added to the "visible to groups" list (fixes #2)
+
+### Changed
+- **Nextcloud compatibility**: Now supports Nextcloud 31–33 (max-version raised from 32 to 33)
+
 ## [1.1.0] - 2025-12-28
 
 ### Added

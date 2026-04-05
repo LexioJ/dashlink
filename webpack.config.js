@@ -15,6 +15,7 @@ webpackConfig.stats = {
 webpackConfig.entry = {
 	dashboard: path.join(__dirname, 'src', 'dashboard.js'),
 	admin: path.join(__dirname, 'src', 'admin.js'),
+	personal: path.join(__dirname, 'src', 'personal.js'),
 }
 
 webpackConfig.output.path = path.resolve(__dirname, './js')

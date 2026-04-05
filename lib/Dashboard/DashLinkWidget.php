@@ -52,16 +52,24 @@ class DashLinkWidget implements IWidget {
 	}
 
 	public function load(): void {
-		// Provide links for current user (filtered by groups)
+		// Provide links for current user (admin links filtered by groups + user's private links)
 		$links = $this->linkService->getLinksForCurrentUser();
 
 		// Add icon URLs to links
 		$linksWithIcons = array_map(function ($link) {
 			if (!empty($link['iconPath'])) {
-				$link['iconUrl'] = $this->urlGenerator->linkToRoute(
-					'dashlink.link.getIcon',
-					['id' => $link['id']]
-				);
+				// Use appropriate route based on whether it's a user link or admin link
+				if (!empty($link['userId'])) {
+					$link['iconUrl'] = $this->urlGenerator->linkToRoute(
+						'dashlink.userLink.getIcon',
+						['id' => $link['id']]
+					);
+				} else {
+					$link['iconUrl'] = $this->urlGenerator->linkToRoute(
+						'dashlink.link.getIcon',
+						['id' => $link['id']]
+					);
+				}
 			} else {
 				$link['iconUrl'] = null;
 			}
@@ -69,7 +77,8 @@ class DashLinkWidget implements IWidget {
 		}, $links);
 
 		// Re-index array to ensure it's sequential (not an object in JSON)
-		$linksWithIcons = array_values($linksWithIcons);
+		// Limit to maximum 10 links for widget display
+		$linksWithIcons = array_values(array_slice($linksWithIcons, 0, 10));
 
 		$this->initialStateService->provideInitialState(
 			'dashlink',

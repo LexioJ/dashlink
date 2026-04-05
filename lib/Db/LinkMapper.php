@@ -18,7 +18,7 @@ class LinkMapper extends QBMapper {
 	}
 
 	/**
-	 * Find all links ordered by position
+	 * Find all admin links ordered by position (user_id IS NULL)
 	 *
 	 * @return Link[]
 	 */
@@ -27,6 +27,7 @@ class LinkMapper extends QBMapper {
 
 		$qb->select('*')
 			->from($this->getTableName())
+			->where($qb->expr()->isNull('user_id'))
 			->orderBy('position', 'ASC');
 
 		return $this->findEntities($qb);
@@ -49,7 +50,7 @@ class LinkMapper extends QBMapper {
 	}
 
 	/**
-	 * Find enabled links ordered by position
+	 * Find enabled admin links ordered by position (user_id IS NULL)
 	 *
 	 * @return Link[]
 	 */
@@ -59,18 +60,19 @@ class LinkMapper extends QBMapper {
 		$qb->select('*')
 			->from($this->getTableName())
 			->where($qb->expr()->eq('enabled', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->isNull('user_id'))
 			->orderBy('position', 'ASC');
 
 		return $this->findEntities($qb);
 	}
 
 	/**
-	 * Find enabled links for specific user groups
+	 * Find enabled admin links for specific user groups (user_id IS NULL)
 	 *
 	 * @param array $userGroups Array of group IDs the user belongs to
 	 * @return Link[]
 	 */
-	public function findForUser(array $userGroups): array {
+	public function findAdminLinksForUser(array $userGroups): array {
 		$allLinks = $this->findEnabled();
 
 		// Filter links based on group membership
@@ -88,6 +90,81 @@ class LinkMapper extends QBMapper {
 	}
 
 	/**
+	 * Find all links for a specific user (user's private links only)
+	 *
+	 * @param string $userId User's UID
+	 * @return Link[]
+	 */
+	public function findByUser(string $userId): array {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)))
+			->orderBy('position', 'ASC');
+
+		return $this->findEntities($qb);
+	}
+
+	/**
+	 * Find enabled links for a specific user
+	 *
+	 * @param string $userId User's UID
+	 * @return Link[]
+	 */
+	public function findEnabledByUser(string $userId): array {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)))
+			->andWhere($qb->expr()->eq('enabled', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)))
+			->orderBy('position', 'ASC');
+
+		return $this->findEntities($qb);
+	}
+
+	/**
+	 * Find a link by ID that belongs to a specific user (for ownership check)
+	 *
+	 * @param int $id Link ID
+	 * @param string $userId User's UID
+	 * @return Link
+	 * @throws DoesNotExistException
+	 * @throws MultipleObjectsReturnedException
+	 */
+	public function findByIdForUser(int $id, string $userId): Link {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)));
+
+		return $this->findEntity($qb);
+	}
+
+	/**
+	 * Count links for a specific user
+	 *
+	 * @param string $userId User's UID
+	 * @return int
+	 */
+	public function countUserLinks(string $userId): int {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select($qb->func()->count('*', 'count'))
+			->from($this->getTableName())
+			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)));
+
+		$result = $qb->executeQuery();
+		$row = $result->fetch();
+		$result->closeCursor();
+
+		return (int) ($row['count'] ?? 0);
+	}
+
+	/**
 	 * Delete link by ID
 	 */
 	public function deleteById(int $id): void {
@@ -100,7 +177,7 @@ class LinkMapper extends QBMapper {
 	}
 
 	/**
-	 * Update positions for multiple links
+	 * Update positions for multiple admin links (validates they are admin links)
 	 *
 	 * @param array $linkIds Array of link IDs in the desired order
 	 */
@@ -112,10 +189,47 @@ class LinkMapper extends QBMapper {
 			$qb->update($this->getTableName())
 				->set('position', $qb->createNamedParameter($position, IQueryBuilder::PARAM_INT))
 				->set('updated_at', $qb->createNamedParameter(new \DateTime(), IQueryBuilder::PARAM_DATE))
-				->where($qb->expr()->eq('id', $qb->createNamedParameter($linkId, IQueryBuilder::PARAM_INT)));
+				->where($qb->expr()->eq('id', $qb->createNamedParameter($linkId, IQueryBuilder::PARAM_INT)))
+				->andWhere($qb->expr()->isNull('user_id'));
 
 			$qb->executeStatement();
 			$position++;
 		}
+	}
+
+	/**
+	 * Update positions for a specific user's links
+	 *
+	 * @param string $userId User's UID
+	 * @param array $linkIds Array of link IDs in the desired order
+	 */
+	public function updateUserPositions(string $userId, array $linkIds): void {
+		$position = 0;
+		foreach ($linkIds as $linkId) {
+			$qb = $this->db->getQueryBuilder();
+
+			$qb->update($this->getTableName())
+				->set('position', $qb->createNamedParameter($position, IQueryBuilder::PARAM_INT))
+				->set('updated_at', $qb->createNamedParameter(new \DateTime(), IQueryBuilder::PARAM_DATE))
+				->where($qb->expr()->eq('id', $qb->createNamedParameter($linkId, IQueryBuilder::PARAM_INT)))
+				->andWhere($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)));
+
+			$qb->executeStatement();
+			$position++;
+		}
+	}
+
+	/**
+	 * Delete all links for a specific user
+	 *
+	 * @param string $userId User's UID
+	 */
+	public function deleteByUser(string $userId): void {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->delete($this->getTableName())
+			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)));
+
+		$qb->executeStatement();
 	}
 }

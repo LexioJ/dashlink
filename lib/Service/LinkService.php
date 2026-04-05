@@ -14,21 +14,24 @@ class LinkService {
 	private IUserSession $userSession;
 	private IGroupManager $groupManager;
 	private SecurityService $securityService;
+	private SettingsService $settingsService;
 
 	public function __construct(
 		LinkMapper $mapper,
 		IUserSession $userSession,
 		IGroupManager $groupManager,
-		SecurityService $securityService
+		SecurityService $securityService,
+		SettingsService $settingsService
 	) {
 		$this->mapper = $mapper;
 		$this->userSession = $userSession;
 		$this->groupManager = $groupManager;
 		$this->securityService = $securityService;
+		$this->settingsService = $settingsService;
 	}
 
 	/**
-	 * Get links for the current user (filtered by group membership)
+	 * Get links for the current user (admin links filtered by group membership + user's private links)
 	 *
 	 * @return array
 	 */
@@ -38,13 +41,27 @@ class LinkService {
 			return [];
 		}
 
+		$userId = $user->getUID();
+
 		// Get user's groups
 		$userGroups = $this->groupManager->getUserGroupIds($user);
 
-		// Find links for user
-		$links = $this->mapper->findForUser($userGroups);
+		// Find admin links filtered by user's groups
+		$adminLinks = $this->mapper->findAdminLinksForUser($userGroups);
 
-		return array_map(fn(Link $link) => $link->jsonSerialize(), $links);
+		// If user links are enabled, get user's private links
+		$userLinks = [];
+		if ($this->settingsService->isUserLinksEnabled()) {
+			$userLinks = $this->mapper->findEnabledByUser($userId);
+		}
+
+		// Merge: admin links first, then user links
+		$allLinks = array_merge(
+			array_map(fn(Link $link) => $link->jsonSerialize(), $adminLinks),
+			array_map(fn(Link $link) => $link->jsonSerialize(), $userLinks)
+		);
+
+		return $allLinks;
 	}
 
 	/**
