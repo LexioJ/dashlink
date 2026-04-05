@@ -1,27 +1,27 @@
-[![Version](https://img.shields.io/badge/version-1.1.0-blue)](https://github.com/lexioj/dashlink/releases)
+[![Version](https://img.shields.io/badge/version-1.2.0-blue)](https://github.com/lexioj/dashlink/releases)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-green)](LICENSE)
-[![Nextcloud](https://img.shields.io/badge/Nextcloud-31+-blue)](https://nextcloud.com)
+[![Nextcloud](https://img.shields.io/badge/Nextcloud-31--33-blue)](https://nextcloud.com)
 # DashLink - External Links Widget for Nextcloud
 
-A Nextcloud dashboard widget that displays external website links with customizable hover effects using optional group-based visibility.
+A Nextcloud dashboard widget that displays external website links with customizable hover effects and optional group-based visibility. Administrators manage global links centrally; users can optionally create their own personal links.
 
 ## Features
 
 ### Core Features
 ![Dashboard Widget](docs/images/dashlink.gif)
-- **Dashboard Widget**: Display external links on the Nextcloud dashboard (limited to 10 visible at once)
+- **Dashboard Widget**: Display external links on the Nextcloud dashboard (up to 10 visible at once — admin links first, then personal user links)
 - **Custom Icons**: Upload custom logos/icons for each website (PNG, JPG, GIF, SVG, WebP up to 2MB)
 - **Modular Hover Effects**: Three built-in animation effects:
   - **Blur Overlay**: Description appears over a blurred logo background
   - **3D Card Flip**: Card flips to reveal description on the back
   - **Slide Panel**: Description panel slides up from the bottom
-- **Group-Based Visibility**: Show links only to specific Nextcloud groups
+- **Group-Based Visibility**: Show links only to specific Nextcloud groups (supports group names with dots, spaces, and special characters)
 - **Live Preview**: Real-time preview in the admin panel with group filter simulation
 - **Responsive Design**: Adapts from 1 to 2 columns based on viewport
 - **Dark Mode Compatible**: Full support for Nextcloud dark theme
 
 ### Admin Panel Features
-![Dashboard Widget](docs/images/admin-settings.png)
+![Admin Settings](docs/images/admin-settings.png)
 - **Drag & Drop Reordering**: Visually reorder links with position number badges
 - **CRUD Operations**: Create, read, update, and delete links with modern forms
 - **Export/Import**:
@@ -32,10 +32,18 @@ A Nextcloud dashboard widget that displays external website links with customiza
 - **Group Management**: Select multiple groups with autocomplete picker
 - **Icon Management**: Upload, delete, or download icons from URLs
 - **Widget Customization**: Configure widget title and hover effects globally
+- **User Links Toggle**: Enable or disable user-private links globally (disabled by default)
+- **User Limit Setting**: Configure the maximum number of personal links per user (1–50, default 10)
+
+### User Personal Links (new in 1.2.0)
+- Users can create their own personal dashboard links, visible only to themselves
+- Managed via **Settings → Personal → DashLink**
+- Full feature parity: custom icons, drag-drop reorder, import/export
+- Only available when enabled by an administrator
 
 ## Requirements
 
-- **Nextcloud**: 31 or higher (required for Vue 3 support)
+- **Nextcloud**: 31–33
 - **PHP**: 8.1 or higher
 - **Node.js**: 20.x or higher (22.x tested and working)
 - **npm**: 10.x or higher
@@ -71,9 +79,10 @@ A Nextcloud dashboard widget that displays external website links with customiza
    ```
 
    **Expected build output**:
-   - `js/dashlink-dashlink-dashboard.js` (~120 KB) - Dashboard widget
-   - `js/dashlink-dashlink-admin.js` (~500 KB) - Admin panel
-   - You may see SCSS deprecation warnings - these are non-blocking and will be addressed in future sass-loader updates
+   - `js/dashlink-dashboard.js` — Dashboard widget
+   - `js/dashlink-admin.js` — Admin panel
+   - `js/dashlink-personal.js` — Personal settings page
+   - You may see SCSS deprecation warnings — these are non-blocking and will be addressed in future sass-loader updates
 
 4. Enable the app:
    ```bash
@@ -99,7 +108,7 @@ A Nextcloud dashboard widget that displays external website links with customiza
 
 ### For Administrators
 
-1. Navigate to **Settings** → **Administration** → **DashLink**
+1. Navigate to **Settings → Administration → DashLink**
 2. Click **"Add Link"** to create a new link
 3. Fill in the link details:
    - **Title**: Display name
@@ -110,13 +119,19 @@ A Nextcloud dashboard widget that displays external website links with customiza
    - **Visible to Groups**: Select groups (leave empty for all users)
 4. Select a **Hover Effect** from the dropdown
 5. Preview your changes in the live preview panel
+6. Optionally enable **User Personal Links** and set a per-user link limit
 
 ### For Users
 
 1. Navigate to your **Dashboard**
-2. The **DashLink** widget displays all links you have access to
+2. The **DashLink** widget displays all links you have access to (admin links first, then your personal links)
 3. Hover over links to see the animated description
 4. Click to open the website
+
+**Personal links** (if enabled by your admin):
+1. Navigate to **Settings → Personal → DashLink**
+2. Create, edit, reorder, and delete your own private links
+3. Your links appear on the dashboard after admin-configured links
 
 ## Development
 
@@ -125,21 +140,35 @@ A Nextcloud dashboard widget that displays external website links with customiza
 ```
 dashlink/
 ├── appinfo/              # App configuration
-│   ├── info.xml          # App metadata
+│   ├── info.xml          # App metadata and version
 │   ├── routes.php        # API routes
 │   └── database.xml      # Database schema
 ├── lib/                  # PHP backend
 │   ├── AppInfo/          # Bootstrap
 │   ├── Controller/       # REST API controllers
+│   │   ├── AdminController.php
+│   │   ├── LinkController.php
+│   │   ├── SettingsController.php
+│   │   └── UserLinkController.php
 │   ├── Dashboard/        # Dashboard widget
 │   ├── Db/               # Database entities & mappers
 │   ├── Migration/        # Database migrations
 │   ├── Service/          # Business logic
-│   └── Settings/         # Admin settings
+│   │   ├── IconService.php
+│   │   ├── LinkService.php
+│   │   ├── SecurityService.php
+│   │   ├── SettingsService.php
+│   │   └── UserLinkService.php
+│   └── Settings/         # Admin & personal settings registration
 ├── src/                  # Vue.js frontend
 │   ├── components/       # Vue components
+│   │   ├── AdminPanel.vue
+│   │   ├── LinkCard.vue
+│   │   ├── PersonalPanel.vue
+│   │   ├── UserLinkForm.vue
+│   │   └── UserIconUploader.vue
 │   ├── composables/      # Vue 3 composables
-│   └── effects/          # Modular effect system
+│   └── effects/          # Modular hover effect system
 ├── css/                  # SCSS styles
 ├── img/                  # App icons
 └── templates/            # PHP templates
@@ -221,27 +250,39 @@ make appstore   # Build app package for app store
 
 ### API Endpoints
 
-**15 RESTful endpoints organized by functionality:**
+**25 RESTful endpoints organized by functionality:**
 
 **Public Routes (2):**
-- `GET /api/v1/links` - Get user's links (filtered by groups)
-- `GET /api/v1/links/{id}/icon` - Get link icon
+- `GET /api/v1/links` — Get user's links (filtered by groups, includes personal links)
+- `GET /api/v1/links/{id}/icon` — Get link icon
 
 **Admin Link Management (11):**
-- `GET /api/v1/admin/links` - Get all links
-- `POST /api/v1/admin/links` - Create link
-- `PUT /api/v1/admin/links/{id}` - Update link
-- `DELETE /api/v1/admin/links/{id}` - Delete link
-- `POST /api/v1/admin/links/{id}/icon` - Upload icon
-- `DELETE /api/v1/admin/links/{id}/icon` - Delete icon
-- `PUT /api/v1/admin/links/order` - Update link order (drag & drop)
-- `GET /api/v1/admin/links/export` - Export links to JSON
-- `POST /api/v1/admin/links/import` - Import links from JSON
-- `GET /api/v1/admin/groups` - Get available Nextcloud groups
+- `GET /api/v1/admin/links` — Get all links
+- `POST /api/v1/admin/links` — Create link
+- `PUT /api/v1/admin/links/{id}` — Update link
+- `DELETE /api/v1/admin/links/{id}` — Delete link
+- `POST /api/v1/admin/links/{id}/icon` — Upload icon
+- `DELETE /api/v1/admin/links/{id}/icon` — Delete icon
+- `PUT /api/v1/admin/links/order` — Update link order (drag & drop)
+- `GET /api/v1/admin/links/export` — Export links to JSON
+- `POST /api/v1/admin/links/import` — Import links from JSON
+- `GET /api/v1/admin/groups` — Get available Nextcloud groups
 
 **Admin Settings (2):**
-- `GET /api/v1/admin/settings` - Get global settings
-- `PUT /api/v1/admin/settings` - Update global settings
+- `GET /api/v1/admin/settings` — Get global settings
+- `PUT /api/v1/admin/settings` — Update global settings
+
+**User Personal Links (10):**
+- `GET /api/v1/user/links` — List user's personal links
+- `POST /api/v1/user/links` — Create personal link
+- `PUT /api/v1/user/links/{id}` — Update personal link
+- `DELETE /api/v1/user/links/{id}` — Delete personal link
+- `POST /api/v1/user/links/{id}/icon` — Upload icon
+- `DELETE /api/v1/user/links/{id}/icon` — Delete icon
+- `GET /api/v1/user/links/{id}/icon` — Get icon
+- `PUT /api/v1/user/links/order` — Update order
+- `GET /api/v1/user/links/export` — Export to JSON
+- `POST /api/v1/user/links/import` — Import from JSON
 
 ## Architecture
 
@@ -254,13 +295,13 @@ make appstore   # Build app package for app store
 ### Frontend
 - **Vue.js 3** with Composition API
 - **@nextcloud/vue**: Nextcloud UI components
-- **Webpack 5**: Module bundling
+- **Webpack 5**: Module bundling with three entry points (dashboard, admin, personal)
 - **SCSS**: Styling with Nextcloud CSS variables
 
 ### Effect System
-- **Modular Architecture**: Each effect is self-contained
+- **Modular Architecture**: Each effect is self-contained in its own folder
 - **Dynamic Loading**: Effects loaded via `getEffectComponent()`
-- **Consistent Interface**: All effects receive same props
+- **Consistent Interface**: All effects receive same props (`link`, `isHovered`)
 - **Easy Extension**: Add new effects without modifying core code
 
 ### Technical Notes
@@ -278,7 +319,13 @@ make appstore   # Build app package for app store
 **Build Configuration:**
 - Webpack configured with Node.js polyfills (process, buffer) for browser compatibility
 - `resolve.fullySpecified: false` to handle ESM import resolution
-- Dual entry points: dashboard.js and admin.js for optimized bundle splitting
+- Three entry points: `dashboard.js`, `admin.js`, and `personal.js` for optimized bundle splitting
+
+**Security:**
+- `SecurityService` centralizes all input validation and sanitization
+- Group ID validation supports all valid Nextcloud group naming conventions (including dots, spaces, and special characters)
+- Rate limiting on user link creation (20/hour) and import (3/hour)
+- SVG sanitization on upload, SSRF protection on icon URL downloads
 
 ## License
 

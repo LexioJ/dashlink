@@ -8,21 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.0] - 2026-04-05
 
 ### Added
-- **User-private links**: Users can create personal dashboard links visible only to themselves
-  - Admin toggle to enable/disable the feature globally (disabled by default)
-  - Configurable maximum links per user (1-50, default 10)
-  - Personal settings page at Settings > DashLink
-  - Full CRUD, drag-drop reorder, import/export, and icon management for user links
-  - User icons stored in separate `user_icons/{userId}/` subfolder
-  - Admin links display first in dashboard, followed by user's personal links
-  - Rate limiting on link creation (20/hour) and import (3/hour)
+- **User-private links**: Users can create personal dashboard links visible only to themselves, managed via Settings → Personal → DashLink. Feature is disabled by default; admins can enable it and set a per-user link limit (1–50, default 10). Includes full CRUD, drag-drop reorder, import/export, and icon upload. Admin links always appear first in the dashboard widget.
 
 ### Fixed
-- **Group visibility**: Group names containing `.` (dot) or ` ` (space) can now be added to the "visible to groups" list (fixes #2)
+- **Group visibility**: Group names containing `.` (dot), ` ` (space), or other common special characters can now be added to the "visible to groups" list (fixes #2)
 
 ### Changed
-- **Nextcloud compatibility**: Extended max-version to 33 (now supports NC 31–33)
-- **Version bump**: 1.1.0 → 1.2.0
+- **Nextcloud compatibility**: Now supports Nextcloud 31–33 (max-version raised from 32 to 33)
 
 ## [1.1.0] - 2025-12-28
 
