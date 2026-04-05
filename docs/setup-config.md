@@ -95,7 +95,7 @@ dashlink/
 ├── appinfo/
 │   ├── info.xml                    # App metadata
 │   ├── routes.php                  # API routes definition
-│   └── database.xml                # Database schema
+│   └── (no database.xml)           # Schema handled via lib/Migration/*
 ├── lib/
 │   ├── AppInfo/
 │   │   └── Application.php         # App bootstrap & registration

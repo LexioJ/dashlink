@@ -26,7 +26,7 @@ Admin Panel:
 - Toggle to enable/disable user-private links (disabled by default)
 - Configurable maximum links per user (1-50, default 10)
     ]]></description>
-    <version>1.2.0</version>
+    <version>1.2.1</version>
     <licence>agpl</licence>
     <author>DashLink Team</author>
     <namespace>DashLink</namespace>

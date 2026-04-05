@@ -1,4 +1,4 @@
-[![Version](https://img.shields.io/badge/version-1.2.0-blue)](https://github.com/lexioj/dashlink/releases)
+[![Version](https://img.shields.io/badge/version-1.2.1-blue)](https://github.com/lexioj/dashlink/releases)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-green)](LICENSE)
 [![Nextcloud](https://img.shields.io/badge/Nextcloud-31--33-blue)](https://nextcloud.com)
 # DashLink - External Links Widget for Nextcloud
@@ -141,8 +141,7 @@ A Nextcloud dashboard widget that displays external website links with customiza
 dashlink/
 ├── appinfo/              # App configuration
 │   ├── info.xml          # App metadata and version
-│   ├── routes.php        # API routes
-│   └── database.xml      # Database schema
+│   └── routes.php        # API routes
 ├── lib/                  # PHP backend
 │   ├── AppInfo/          # Bootstrap
 │   ├── Controller/       # REST API controllers
