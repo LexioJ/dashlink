@@ -216,7 +216,7 @@ class SecurityService {
 				throw new \InvalidArgumentException('Group IDs must be strings');
 			}
 			// Sanitize group IDs
-			if (!preg_match('/^[a-zA-Z0-9_\-]+$/', $groupId)) {
+			if (!preg_match('/^[a-zA-Z0-9_\-\. @äöüÄÖÜß]+$/u', $groupId)) {
 				throw new \InvalidArgumentException('Invalid group ID format');
 			}
 		}

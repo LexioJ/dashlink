@@ -5,7 +5,7 @@
     <name>DashLink</name>
     <summary>Dashboard widget for external website links</summary>
     <description><![CDATA[
-DashLink provides a dashboard widget that displays external website links configured by administrators.
+DashLink provides a dashboard widget that displays external website links configured by administrators or users.
 
 Core Features:
 - Dashboard widget displaying external links (max 10 visible)
@@ -13,6 +13,7 @@ Core Features:
 - Group-based visibility control (show links to specific user groups)
 - Three modular hover animation effects (Blur Overlay, 3D Card Flip, Slide Panel)
 - Responsive grid layout (1-2 columns) with full dark mode support
+- User-private links: users can create personal links visible only to themselves (admin-configurable)
 
 Admin Panel:
 - Complete CRUD operations for link management
@@ -22,8 +23,10 @@ Admin Panel:
 - Duplicate detection on import (by title or URL)
 - Live preview panel with group filter simulation
 - Modern Nextcloud UI (toggle switches, modals, autocomplete pickers)
+- Toggle to enable/disable user-private links (disabled by default)
+- Configurable maximum links per user (1-50, default 10)
     ]]></description>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
     <licence>agpl</licence>
     <author>DashLink Team</author>
     <namespace>DashLink</namespace>
@@ -39,7 +42,7 @@ Admin Panel:
     <screenshot>https://raw.githubusercontent.com/LexioJ/dashlink/main/docs/images/link-settings.png</screenshot>
  
     <dependencies>
-        <nextcloud min-version="31" max-version="32"/>
+        <nextcloud min-version="31" max-version="33"/>
     </dependencies>
 
     <settings>
