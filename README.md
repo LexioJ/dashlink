@@ -349,6 +349,14 @@ Contributions are welcome! Please:
 - **Discussions**: [GitHub Discussions](https://github.com/lexioj/dashlink/discussions)
 - **Documentation**: See [docs/](docs/) folder for detailed implementation guides
 
+## Contributors
+
+Special thanks to everyone who has contributed to DashLink:
+
+- **[@amalg](https://github.com/amalg)** — Designed and implemented the user-private links feature ([#3](https://github.com/LexioJ/dashlink/pull/3)), including the personal settings page, user link API, icon management, and dashboard integration. A significant contribution that greatly expands what DashLink can do for end users.
+
+Want to contribute? See the [Contributing](#contributing) section above.
+
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for a complete list of changes and version history.
