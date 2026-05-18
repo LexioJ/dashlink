@@ -3,7 +3,7 @@
 		<label class="selector-label">
 			Hover Effect
 			<span class="hint">
-				Animation style when hovering over links
+				Animation style when hovering over links (for entries with a description)
 			</span>
 		</label>
 
@@ -11,6 +11,7 @@
 			v-model="selectedEffect"
 			:options="effects"
 			:placeholder="'Select effect...'"
+			:clearable="false"
 			label="name"
 			@update:modelValue="onSelectionChange" />
 	</div>
@@ -72,6 +73,7 @@ export default defineComponent({
 	display: block;
 	margin-bottom: 8px;
 	font-weight: 500;
+	cursor: default;
 
 	.hint {
 		display: block;

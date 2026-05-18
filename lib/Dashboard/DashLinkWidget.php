@@ -9,6 +9,8 @@ use OCP\IURLGenerator;
 use OCP\IInitialStateService;
 use OCA\DashLink\Service\LinkService;
 use OCA\DashLink\Service\SettingsService;
+use OCP\IGroupManager;
+use OCP\IUserSession;
 
 class DashLinkWidget implements IWidget {
 	private IL10N $l10n;
@@ -16,19 +18,25 @@ class DashLinkWidget implements IWidget {
 	private IInitialStateService $initialStateService;
 	private LinkService $linkService;
 	private SettingsService $settingsService;
+	private IGroupManager $groupManager;
+	private IUserSession $userSession;
 
 	public function __construct(
 		IL10N $l10n,
 		IURLGenerator $urlGenerator,
 		IInitialStateService $initialStateService,
 		LinkService $linkService,
-		SettingsService $settingsService
+		SettingsService $settingsService,
+		IGroupManager $groupManager,
+		IUserSession $userSession
 	) {
 		$this->l10n = $l10n;
 		$this->urlGenerator = $urlGenerator;
 		$this->initialStateService = $initialStateService;
 		$this->linkService = $linkService;
 		$this->settingsService = $settingsService;
+		$this->groupManager = $groupManager;
+		$this->userSession = $userSession;
 	}
 
 	public function getId(): string {
@@ -91,6 +99,20 @@ class DashLinkWidget implements IWidget {
 			'dashlink',
 			'hoverEffect',
 			$this->settingsService->getHoverEffect()
+		);
+
+		// Provide isAdmin and userLinksEnabled for gear menu
+		$user = $this->userSession->getUser();
+		$isAdmin = $user !== null && $this->groupManager->isAdmin($user->getUID());
+		$this->initialStateService->provideInitialState(
+			'dashlink',
+			'isAdmin',
+			$isAdmin
+		);
+		$this->initialStateService->provideInitialState(
+			'dashlink',
+			'userLinksEnabled',
+			$this->settingsService->isUserLinksEnabled()
 		);
 
 		\OCP\Util::addScript('dashlink', 'dashlink-dashboard');

@@ -43,7 +43,8 @@
 								type="number"
 								min="1"
 								max="50"
-								@input="debouncedSaveSettings">
+								@input="handleLinkLimitInput">
+							<span class="limit-hint">(1 - 50)</span>
 						</div>
 					</div>
 				</div>
@@ -127,6 +128,13 @@
 								</NcButton>
 								<NcButton
 									type="tertiary"
+									@click="duplicateLink(link)">
+									<template #icon>
+										<ContentCopy :size="20" />
+									</template>
+								</NcButton>
+								<NcButton
+									type="tertiary"
 									@click="editLink(link)">
 									<template #icon>
 										<Pencil :size="20" />
@@ -178,7 +186,7 @@
 </template>
 
 <script>
-import { defineComponent, ref, computed, onMounted } from 'vue'
+import { defineComponent, ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcModal from '@nextcloud/vue/components/NcModal'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
@@ -189,6 +197,9 @@ import Eye from 'vue-material-design-icons/Eye.vue'
 import EyeOff from 'vue-material-design-icons/EyeOff.vue'
 import Download from 'vue-material-design-icons/Download.vue'
 import Upload from 'vue-material-design-icons/Upload.vue'
+import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
+import { generateUrl } from '@nextcloud/router'
+import axios from '@nextcloud/axios'
 import { showSuccess, showError } from '../utils/notifications.js'
 import EffectSelector from './EffectSelector.vue'
 import WidgetPreview from './WidgetPreview.vue'
@@ -211,6 +222,7 @@ export default defineComponent({
 		EyeOff,
 		Download,
 		Upload,
+		ContentCopy,
 		EffectSelector,
 		WidgetPreview,
 		LinkForm,
@@ -231,6 +243,17 @@ export default defineComponent({
 
 		const sortedLinks = computed(() => {
 			return [...links.value].sort((a, b) => a.position - b.position)
+		})
+
+		// Clamp userLinkLimit to 1-50
+		watch(userLinkLimit, (val) => {
+			if (val !== null && val !== undefined && val !== '') {
+				if (val > 50) {
+					userLinkLimit.value = 50
+				} else if (val < 1) {
+					userLinkLimit.value = 1
+				}
+			}
 		})
 
 		// Filter preview links by selected groups (simulation), then limit to 10
@@ -265,7 +288,28 @@ export default defineComponent({
 				fetchGroups(),
 				fetchSettings(),
 			])
+			document.addEventListener('keydown', handleGlobalKeydown)
 		})
+
+		onUnmounted(() => {
+			document.removeEventListener('keydown', handleGlobalKeydown)
+		})
+
+		function handleGlobalKeydown(event) {
+			if (event.key === 'Escape' && showLinkForm.value) {
+				closeLinkForm()
+			}
+		}
+
+		function handleLinkLimitInput() {
+			// Clamp immediately on input as well
+			if (userLinkLimit.value > 50) {
+				userLinkLimit.value = 50
+			} else if (userLinkLimit.value < 1 && userLinkLimit.value !== '' && userLinkLimit.value !== null) {
+				userLinkLimit.value = 1
+			}
+			debouncedSaveSettings()
+		}
 
 		function debouncedSaveSettings() {
 			if (saveTimeout.value) {
@@ -288,12 +332,38 @@ export default defineComponent({
 
 		async function handleSaveLink(linkData) {
 			try {
+				// Extract the pending icon file before sending link data
+				const pendingIconFile = linkData.pendingIconFile
+				delete linkData.pendingIconFile
+
 				if (editingLink.value) {
 					await updateLink(editingLink.value.id, linkData)
 					showSuccess('Link updated successfully')
 				} else {
-					await createLink(linkData)
+					const newLink = await createLink(linkData)
 					showSuccess('Link created successfully')
+
+					// If there was a pending icon file, upload it now that we have the link ID
+					if (pendingIconFile && newLink && newLink.id) {
+						try {
+							const formData = new FormData()
+							formData.append('icon', pendingIconFile)
+
+							await axios.post(
+								generateUrl('/apps/dashlink/api/v1/admin/links/{id}/icon', { id: newLink.id }),
+								formData,
+								{
+									headers: {
+										'Content-Type': 'multipart/form-data',
+									},
+								}
+							)
+							// Refresh links to show the icon
+							await fetchLinks()
+						} catch (iconError) {
+							showError('Link created but icon upload failed: ' + iconError.message)
+						}
+					}
 				}
 				closeLinkForm()
 			} catch (error) {
@@ -328,6 +398,20 @@ export default defineComponent({
 				showSuccess(link.enabled ? 'Link disabled' : 'Link enabled')
 			} catch (error) {
 				showError('Failed to update link: ' + error.message)
+			}
+		}
+
+		async function duplicateLink(link) {
+			try {
+				const response = await axios.post(
+					generateUrl('/apps/dashlink/api/v1/admin/duplicate/{id}', { id: link.id })
+				)
+				await fetchLinks()
+				showSuccess('Link duplicated successfully')
+				const newLink = links.value.find(l => l.id === response.data.id) || response.data
+				editLink(newLink)
+			} catch (error) {
+				showError('Failed to duplicate link: ' + error.message)
 			}
 		}
 
@@ -473,8 +557,10 @@ export default defineComponent({
 			handleIconUpdated,
 			confirmDelete,
 			toggleEnabled,
+			duplicateLink,
 			saveSettings,
 			debouncedSaveSettings,
+			handleLinkLimitInput,
 			handleDragStart,
 			handleDragEnd,
 			handleDragOver,
@@ -593,6 +679,11 @@ export default defineComponent({
 		label {
 			margin: 0;
 			font-weight: 500;
+		}
+
+		.limit-hint {
+			font-size: 12px;
+			color: var(--color-text-maxcontrast);
 		}
 	}
 }

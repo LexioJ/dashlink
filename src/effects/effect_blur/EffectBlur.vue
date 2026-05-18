@@ -2,8 +2,15 @@
 	<Transition name="effect-blur">
 		<div
 			v-if="isHovered && link.description"
-			class="effect-blur-overlay"
-			:style="backgroundStyle">
+			class="effect-blur-overlay">
+			<img
+				v-if="link.iconUrl"
+				:src="link.iconUrl"
+				:alt="link.title"
+				class="effect-bg-icon">
+			<div v-else class="effect-bg-icon-placeholder">
+				<LinkIcon :size="48" />
+			</div>
 			<div class="effect-blur-content">
 				<p class="effect-blur-description">{{ link.description }}</p>
 			</div>
@@ -12,10 +19,12 @@
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue'
+import { defineComponent } from 'vue'
+import LinkIcon from 'vue-material-design-icons/Link.vue'
 
 export default defineComponent({
 	name: 'EffectBlur',
+	components: { LinkIcon },
 	props: {
 		link: {
 			type: Object,
@@ -26,18 +35,6 @@ export default defineComponent({
 			default: false,
 		},
 	},
-	setup(props) {
-		const backgroundStyle = computed(() => {
-			if (props.link.iconUrl) {
-				return {
-					backgroundImage: `url(${props.link.iconUrl})`,
-				}
-			}
-			return {}
-		})
-
-		return { backgroundStyle }
-	},
 })
 </script>
 
@@ -45,28 +42,34 @@ export default defineComponent({
 .effect-blur-overlay {
 	position: absolute;
 	inset: 0;
-	background-size: cover;
-	background-position: center;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	border-radius: inherit;
 	z-index: 10;
+	background: var(--color-background-hover);
+	overflow: hidden;
+}
 
-	&::before {
-		content: '';
-		position: absolute;
-		inset: 0;
-		background: linear-gradient(
-			135deg,
-			var(--color-main-background) 0%,
-			var(--color-background-hover) 100%
-		);
-		opacity: 0.85;
-		backdrop-filter: blur(8px);
-		-webkit-backdrop-filter: blur(8px);
-		border-radius: inherit;
-	}
+.effect-bg-icon {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	padding: 8px;
+	opacity: 0.15;
+	border-radius: 16px;
+}
+
+.effect-bg-icon-placeholder {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	opacity: 0.15;
+	color: var(--color-main-text);
 }
 
 .effect-blur-content {

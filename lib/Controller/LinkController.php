@@ -110,10 +110,11 @@ class LinkController extends Controller {
 		string $target = '_blank',
 		array $groups = [],
 		int $position = 0,
-		int $enabled = 1
+		int $enabled = 1,
+		?string $iconPath = null
 	): JSONResponse {
 		try {
-			$link = $this->linkService->createLink([
+			$data = [
 				'title' => $title,
 				'url' => $url,
 				'description' => $description,
@@ -121,7 +122,11 @@ class LinkController extends Controller {
 				'groups' => $groups,
 				'position' => $position,
 				'enabled' => $enabled,
-			]);
+			];
+			if ($iconPath !== null) {
+				$data['iconPath'] = $iconPath;
+			}
+			$link = $this->linkService->createLink($data);
 
 			return new JSONResponse($link->jsonSerialize(), Http::STATUS_CREATED);
 		} catch (\Exception $e) {
@@ -210,6 +215,44 @@ class LinkController extends Controller {
 			return new JSONResponse(['error' => 'Link not found'], Http::STATUS_NOT_FOUND);
 		} catch (\InvalidArgumentException $e) {
 			return new JSONResponse(['error' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
+		} catch (\Exception $e) {
+			return new JSONResponse(['error' => $e->getMessage()], Http::STATUS_INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	/**
+	 * Duplicate a link (including icon)
+	 *
+	 * @AdminRequired
+	 */
+	public function duplicate(int $id): JSONResponse {
+		try {
+			$link = $this->linkService->duplicateLink($id, $this->iconService);
+			$data = $link->jsonSerialize();
+			if (!empty($data['iconPath'])) {
+				$data['iconUrl'] = $this->urlGenerator->getAbsoluteURL(
+					$this->urlGenerator->linkToRoute('dashlink.link.getIcon', ['id' => $link->getId()])
+				);
+			}
+			return new JSONResponse($data, Http::STATUS_CREATED);
+		} catch (DoesNotExistException $e) {
+			return new JSONResponse(['error' => 'Link not found'], Http::STATUS_NOT_FOUND);
+		} catch (\Exception $e) {
+			return new JSONResponse(['error' => $e->getMessage()], Http::STATUS_INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	/**
+	 * Copy icon from one link to another
+	 *
+	 * @AdminRequired
+	 */
+	public function copyIcon(int $id, int $sourceId): JSONResponse {
+		try {
+			$link = $this->iconService->copyIconToLink($sourceId, $id);
+			return new JSONResponse($link->jsonSerialize());
+		} catch (DoesNotExistException $e) {
+			return new JSONResponse(['error' => 'Link not found'], Http::STATUS_NOT_FOUND);
 		} catch (\Exception $e) {
 			return new JSONResponse(['error' => $e->getMessage()], Http::STATUS_INTERNAL_SERVER_ERROR);
 		}

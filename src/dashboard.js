@@ -8,10 +8,14 @@ document.addEventListener('DOMContentLoaded', () => {
 	OCA.Dashboard.register('dashlink', (el, { widget }) => {
 		const initialLinks = loadState('dashlink', 'links', [])
 		const hoverEffect = loadState('dashlink', 'hoverEffect', 'blur')
+		const isAdmin = loadState('dashlink', 'isAdmin', false)
+		const userLinksEnabled = loadState('dashlink', 'userLinksEnabled', false)
 
 		const app = createApp(Dashboard, {
 			initialLinks,
 			hoverEffect,
+			isAdmin,
+			userLinksEnabled,
 		})
 
 		// Add translation methods globally
