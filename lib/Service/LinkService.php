@@ -69,6 +69,30 @@ class LinkService {
 	 *
 	 * @return array
 	 */
+	public function duplicateLink(int $id, IconService $iconService): Link {
+		$source = $this->mapper->findById($id);
+
+		$link = new Link();
+		$link->setTitle($source->getTitle() . ' (copy)');
+		$link->setUrl($source->getUrl());
+		$link->setDescription($source->getDescription());
+		$link->setTarget($source->getTarget());
+		$link->setGroups($source->getGroups());
+		$link->setPosition($source->getPosition() + 1);
+		$link->setEnabled($source->getEnabled());
+		$link->setCreatedAt(new \DateTime());
+		$link->setUpdatedAt(new \DateTime());
+
+		$newLink = $this->mapper->insert($link);
+
+		// Copy icon file if exists
+		if ($source->getIconPath() !== null) {
+			$newLink = $iconService->copyIconToLink($id, $newLink->getId());
+		}
+
+		return $newLink;
+	}
+
 	public function getAllLinks(): array {
 		$links = $this->mapper->findAll();
 		return array_map(fn(Link $link) => $link->jsonSerialize(), $links);
@@ -109,6 +133,9 @@ class LinkService {
 		$link->setEnabled($data['enabled'] ?? 1);
 		$link->setCreatedAt(new \DateTime());
 		$link->setUpdatedAt(new \DateTime());
+		if (!empty($data["iconPath"])) {
+			$link->setIconPath($data["iconPath"]);
+		}
 
 		return $this->mapper->insert($link);
 	}
@@ -149,6 +176,9 @@ class LinkService {
 		}
 
 		$link->setUpdatedAt(new \DateTime());
+		if (!empty($data["iconPath"])) {
+			$link->setIconPath($data["iconPath"]);
+		}
 
 		return $this->mapper->update($link);
 	}

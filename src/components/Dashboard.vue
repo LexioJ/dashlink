@@ -1,7 +1,20 @@
 <template>
 	<div class="dashlink-dashboard">
+		<div v-if="showGear" class="gear-menu-wrapper">
+			<button class="gear-button" @click="toggleGearMenu">
+				<Cog :size="16" />
+			</button>
+			<div v-if="gearMenuOpen" class="gear-dropdown">
+				<a v-if="userLinksEnabled" :href="userSettingsUrl" class="gear-item">
+					{{ t('dashlink', 'Edit my links') }}
+				</a>
+				<a v-if="isAdmin" :href="adminSettingsUrl" class="gear-item">
+					{{ t('dashlink', 'Edit (all users)') }}
+				</a>
+			</div>
+		</div>
 		<div v-if="displayLinks.length === 0" class="empty-state">
-			<p>No links available</p>
+			<p>{{ t('dashlink', 'No links available') }}</p>
 		</div>
 		<div
 			v-else
@@ -20,13 +33,16 @@
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue'
+import { defineComponent, computed, ref, onMounted, onUnmounted } from 'vue'
+import { generateUrl } from '@nextcloud/router'
+import Cog from 'vue-material-design-icons/Cog.vue'
 import LinkCard from './LinkCard.vue'
 
 export default defineComponent({
 	name: 'Dashboard',
 	components: {
 		LinkCard,
+		Cog,
 	},
 	props: {
 		initialLinks: {
@@ -37,8 +53,43 @@ export default defineComponent({
 			type: String,
 			default: 'blur',
 		},
+		isAdmin: {
+			type: Boolean,
+			default: false,
+		},
+		userLinksEnabled: {
+			type: Boolean,
+			default: false,
+		},
 	},
 	setup(props) {
+		const gearMenuOpen = ref(false)
+
+		const showGear = computed(() => {
+			return props.isAdmin || props.userLinksEnabled
+		})
+
+		const userSettingsUrl = generateUrl('/settings/user/dashlink')
+		const adminSettingsUrl = generateUrl('/settings/admin/dashlink')
+
+		function toggleGearMenu() {
+			gearMenuOpen.value = !gearMenuOpen.value
+		}
+
+		function closeGearMenu(event) {
+			if (!event.target.closest('.gear-menu-wrapper')) {
+				gearMenuOpen.value = false
+			}
+		}
+
+		onMounted(() => {
+			document.addEventListener('click', closeGearMenu)
+		})
+
+		onUnmounted(() => {
+			document.removeEventListener('click', closeGearMenu)
+		})
+
 		const EFFECTIVE_HEIGHT = 400 // 504px - padding
 		const MIN_ROW_HEIGHT = 70
 		const MAX_LINKS = 10
@@ -111,6 +162,11 @@ export default defineComponent({
 			rowHeight,
 			gridStyle,
 			isFullWidth,
+			showGear,
+			gearMenuOpen,
+			toggleGearMenu,
+			userSettingsUrl,
+			adminSettingsUrl,
 		}
 	},
 })
@@ -118,6 +174,7 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .dashlink-dashboard {
+	position: relative;
 	padding: 0;
 	width: 288px;
 	height: 400px;
@@ -132,6 +189,56 @@ export default defineComponent({
 		.full-width {
 			grid-column: span 2;
 		}
+	}
+}
+
+.gear-menu-wrapper {
+	position: absolute;
+	top: -84px;
+	right: -8px;
+	z-index: 10;
+}
+
+.gear-button {
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 4px;
+	border-radius: var(--border-radius);
+	color: var(--color-text-maxcontrast);
+	opacity: 0.5;
+	transition: opacity 0.2s;
+	display: flex;
+	align-items: center;
+
+	&:hover {
+		opacity: 1;
+		background: none;
+	}
+}
+
+.gear-dropdown {
+	position: absolute;
+	top: 100%;
+	right: 0;
+	background: var(--color-main-background);
+	border: 1px solid var(--color-border);
+	border-radius: var(--border-radius);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+	min-width: 160px;
+	overflow: hidden;
+}
+
+.gear-item {
+	display: block;
+	padding: 8px 12px;
+	color: var(--color-main-text);
+	text-decoration: none;
+	font-size: 13px;
+	white-space: nowrap;
+
+	&:hover {
+		background: var(--color-background-hover);
 	}
 }
 

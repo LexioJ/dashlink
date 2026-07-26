@@ -1,12 +1,20 @@
 <template>
-	<div class="effect-flip-container" :class="{ 'is-flipped': isHovered }">
+	<div class="effect-flip-container" :class="{ 'is-flipped': isHovered && link.description }">
 		<!-- Front Side (default card content is handled by LinkCard) -->
 		<div class="effect-flip-front">
 			<slot name="front" />
 		</div>
 
 		<!-- Back Side -->
-		<div class="effect-flip-back" :style="backgroundStyle">
+		<div class="effect-flip-back">
+			<img
+				v-if="link.iconUrl"
+				:src="link.iconUrl"
+				:alt="link.title"
+				class="flip-back-icon">
+			<div v-else class="flip-back-icon-placeholder">
+				<LinkIcon :size="48" />
+			</div>
 			<div class="flip-back-content">
 				<p v-if="link.description" class="effect-flip-description">
 					{{ link.description }}
@@ -17,10 +25,12 @@
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue'
+import { defineComponent } from 'vue'
+import LinkIcon from 'vue-material-design-icons/Link.vue'
 
 export default defineComponent({
 	name: 'EffectFlip',
+	components: { LinkIcon },
 	props: {
 		link: {
 			type: Object,
@@ -31,17 +41,8 @@ export default defineComponent({
 			default: false,
 		},
 	},
-	setup(props) {
-		const backgroundStyle = computed(() => {
-			if (props.link.iconUrl) {
-				return {
-					backgroundImage: `url(${props.link.iconUrl})`,
-				}
-			}
-			return {}
-		})
-
-		return { backgroundStyle }
+	setup() {
+		return {}
 	},
 })
 </script>
@@ -56,11 +57,9 @@ export default defineComponent({
 	transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
 	z-index: 10;
 	border-radius: inherit;
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
 	&.is-flipped {
 		transform: rotateY(180deg);
-		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 	}
 }
 
@@ -86,28 +85,35 @@ export default defineComponent({
 .effect-flip-back {
 	transform: rotateY(180deg);
 	z-index: 1;
-	background: transparent;
-	background-size: cover;
-	background-position: center;
+	background: var(--color-background-hover);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	padding: 12px;
+}
+
+.flip-back-icon {
+	max-width: 80%;
+	max-height: 80%;
+	object-fit: contain;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	opacity: 0.15;
+	border-radius: 8px;
+}
+
+.flip-back-icon-placeholder {
+	position: absolute;
+	inset: 0;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	padding: 16px;
-
-	&::before {
-		content: '';
-		position: absolute;
-		inset: 0;
-		background: linear-gradient(
-			135deg,
-			var(--color-main-background) 0%,
-			var(--color-background-hover) 100%
-		);
-		opacity: 0.95;
-		backdrop-filter: blur(8px);
-		-webkit-backdrop-filter: blur(8px);
-		border-radius: inherit;
-	}
+	opacity: 0.15;
+	color: var(--color-main-text);
 }
 
 // Firefox-specific fix: ensure back face is on top when flipped

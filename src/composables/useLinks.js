@@ -13,6 +13,7 @@ export function useLinks() {
 			// Add iconUrl to each link
 			links.value = response.data.map(link => ({
 				...link,
+				iconPath: link.iconPath,
 				iconUrl: link.iconPath
 					? generateUrl('/apps/dashlink/api/v1/links/{id}/icon', { id: link.id })
 					: null
@@ -33,6 +34,7 @@ export function useLinks() {
 			)
 			const link = {
 				...response.data,
+				iconPath: response.data.iconPath,
 				iconUrl: response.data.iconPath
 					? generateUrl('/apps/dashlink/api/v1/links/{id}/icon', { id: response.data.id })
 					: null
@@ -53,6 +55,7 @@ export function useLinks() {
 			)
 			const link = {
 				...response.data,
+				iconPath: response.data.iconPath,
 				iconUrl: response.data.iconPath
 					? generateUrl('/apps/dashlink/api/v1/links/{id}/icon', { id: response.data.id })
 					: null

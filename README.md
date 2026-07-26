@@ -1,6 +1,6 @@
-[![Version](https://img.shields.io/badge/version-1.2.1-blue)](https://github.com/lexioj/dashlink/releases)
+[![Version](https://img.shields.io/badge/version-1.3.0-blue)](https://github.com/lexioj/dashlink/releases)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-green)](LICENSE)
-[![Nextcloud](https://img.shields.io/badge/Nextcloud-31--33-blue)](https://nextcloud.com)
+[![Nextcloud](https://img.shields.io/badge/Nextcloud-31--34-blue)](https://nextcloud.com)
 # DashLink - External Links Widget for Nextcloud
 
 A Nextcloud dashboard widget that displays external website links with customizable hover effects and optional group-based visibility. Administrators manage global links centrally; users can optionally create their own personal links.
@@ -11,10 +11,12 @@ A Nextcloud dashboard widget that displays external website links with customiza
 ![Dashboard Widget](docs/images/dashlink.gif)
 - **Dashboard Widget**: Display external links on the Nextcloud dashboard (up to 10 visible at once — admin links first, then personal user links)
 - **Custom Icons**: Upload custom logos/icons for each website (PNG, JPG, GIF, SVG, WebP up to 2MB)
-- **Modular Hover Effects**: Three built-in animation effects:
+- **Modular Hover Effects**: Five built-in animation effects:
   - **Blur Overlay**: Description appears over a blurred logo background
   - **3D Card Flip**: Card flips to reveal description on the back
   - **Slide Panel**: Description panel slides up from the bottom
+  - **Slide Bottom**: Compact description bar slides up from the bottom edge
+  - **Tooltip**: Description bubble pops up above the link
 - **Group-Based Visibility**: Show links only to specific Nextcloud groups (supports group names with dots, spaces, and special characters)
 - **Live Preview**: Real-time preview in the admin panel with group filter simulation
 - **Responsive Design**: Adapts from 1 to 2 columns based on viewport
@@ -24,6 +26,7 @@ A Nextcloud dashboard widget that displays external website links with customiza
 ![Admin Settings](docs/images/admin-settings.png)
 - **Drag & Drop Reordering**: Visually reorder links with position number badges
 - **CRUD Operations**: Create, read, update, and delete links with modern forms
+- **Duplicate Links**: Copy an existing link with all its data and icon in one click
 - **Export/Import**:
   - Export all links to JSON with absolute Nextcloud URLs for icons
   - Import links from JSON with automatic duplicate detection (by title or URL)
@@ -43,7 +46,7 @@ A Nextcloud dashboard widget that displays external website links with customiza
 
 ## Requirements
 
-- **Nextcloud**: 31–33
+- **Nextcloud**: 31–34
 - **PHP**: 8.2 or higher
 - **Node.js**: 20.x or higher (22.x tested and working)
 - **npm**: 10.x or higher
@@ -353,6 +356,7 @@ Contributions are welcome! Please:
 Special thanks to everyone who has contributed to DashLink:
 
 - **[@amalg](https://github.com/amalg)** — Designed and implemented the user-private links feature ([#3](https://github.com/LexioJ/dashlink/pull/3)), including the personal settings page, user link API, icon management, and dashboard integration. A significant contribution that greatly expands what DashLink can do for end users.
+- **[@Finomosec](https://github.com/Finomosec)** — Added two new hover effects (Slide Bottom, Tooltip), the duplicate-link and dashboard gear-menu features, and fixed several bugs including the missing SVG-sanitizer dependency in released packages and dialog keyboard handling ([#8](https://github.com/LexioJ/dashlink/pull/8)).
 
 Want to contribute? See the [Contributing](#contributing) section above.
 

@@ -157,6 +157,35 @@ class IconService {
 	}
 
 	/**
+	 * Copy icon from one link to another
+	 */
+	public function copyIconToLink(int $sourceLinkId, int $targetLinkId): Link {
+		$sourceLink = $this->mapper->findById($sourceLinkId);
+		$targetLink = $this->mapper->findById($targetLinkId);
+
+		$sourceIconPath = $sourceLink->getIconPath();
+		if ($sourceIconPath === null) {
+			return $targetLink;
+		}
+
+		$folder = $this->getIconsFolder();
+		$sourceFile = $folder->getFile($sourceIconPath);
+
+		// Generate new filename for the copy
+		$extension = pathinfo($sourceIconPath, PATHINFO_EXTENSION);
+		$filename = 'icon_' . $targetLinkId . '_' . time() . '.' . $extension;
+
+		$newFile = $folder->newFile($filename);
+		$newFile->putContent($sourceFile->getContent());
+
+		$targetLink->setIconPath($filename);
+		$targetLink->setIconMimeType($sourceLink->getIconMimeType());
+		$targetLink->setUpdatedAt(new \DateTime());
+
+		return $this->mapper->update($targetLink);
+	}
+
+	/**
 	 * Delete icon for link
 	 *
 	 * @throws NotFoundException
