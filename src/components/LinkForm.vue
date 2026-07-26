@@ -1,5 +1,5 @@
 <template>
-	<form class="link-form" @submit.prevent="handleSubmit">
+	<form class="link-form" @submit.prevent="handleSubmit" @keydown.enter="handleEnterKey">
 		<div class="form-group">
 			<label for="title">Title *</label>
 			<input
@@ -40,17 +40,18 @@
 		<div class="form-group">
 			<label>Icon</label>
 			<IconUploader
+				ref="iconUploaderRef"
 				:link-id="link?.id"
 				:current-icon="currentIconUrl"
 				@uploaded="handleIconUploaded"
-				@removed="handleIconRemoved" />
+				@removed="handleIconRemoved"
+				@file-selected="handleFileSelected" />
 		</div>
 
 		<div class="form-group">
 			<label>Visible to Groups</label>
 			<GroupPicker
 				v-model="formData.groupsObjects"
-				label="Visible to Groups"
 				hint="Leave empty to show to all users" />
 		</div>
 
@@ -111,6 +112,8 @@ export default defineComponent({
 		})
 
 		const currentIconUrl = ref(null)
+		const iconUploaderRef = ref(null)
+		const pendingIconFile = ref(null)
 
 		// Initialize form with link data if editing
 		watch(() => props.link, (link) => {
@@ -139,6 +142,7 @@ export default defineComponent({
 				}
 				currentIconUrl.value = null
 			}
+			pendingIconFile.value = null
 		}, { immediate: true })
 
 		// Watch groupsObjects and convert to groups array of IDs
@@ -154,11 +158,24 @@ export default defineComponent({
 			}
 		})
 
+		function handleEnterKey(event) {
+			// Stop propagation so NcModal does not close
+			event.stopPropagation()
+			// Submit form on Enter, but not from textarea (allow newlines there)
+			if (event.target.tagName !== 'TEXTAREA') {
+				event.preventDefault()
+				handleSubmit()
+			}
+		}
 		function handleSubmit() {
 			// Submit only the necessary fields (not groupsObjects)
 			const { groupsObjects, ...dataToSave } = formData.value
 			// Convert enabled boolean to 0/1 for backend
 			dataToSave.enabled = dataToSave.enabled ? 1 : 0
+			// Include the pending icon file if one was selected for a new link
+			if (pendingIconFile.value) {
+				dataToSave.pendingIconFile = pendingIconFile.value
+			}
 			emit('save', dataToSave)
 		}
 
@@ -178,13 +195,21 @@ export default defineComponent({
 			emit('icon-updated', updatedLink)
 		}
 
+		function handleFileSelected(file) {
+			pendingIconFile.value = file
+		}
+
 		return {
 			formData,
 			currentIconUrl,
+			iconUploaderRef,
+			pendingIconFile,
 			enabledSwitch,
 			handleSubmit,
+			handleEnterKey,
 			handleIconUploaded,
 			handleIconRemoved,
+			handleFileSelected,
 		}
 	},
 })

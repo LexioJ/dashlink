@@ -11,12 +11,16 @@
 import EffectBlur from './effect_blur'
 import EffectFlip from './effect_flip'
 import EffectSlide from './effect_slide'
+import EffectSlideBottom from './effect_slide_bottom'
+import EffectTooltip from './effect_tooltip'
 
 // Effect registry - add new effects here
 const effects = {
 	blur: EffectBlur,
 	flip: EffectFlip,
 	slide: EffectSlide,
+	slide_bottom: EffectSlideBottom,
+	tooltip: EffectTooltip,
 }
 
 /**

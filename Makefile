@@ -25,8 +25,8 @@ build:
 # Install composer dependencies
 .PHONY: composer
 composer:
-	composer install --prefer-dist
-	composer dump-autoload
+	composer install --prefer-dist --no-dev
+	composer dump-autoload --no-dev
 
 # Install npm dependencies
 .PHONY: npm
@@ -60,7 +60,7 @@ fix:
 
 # Build app package for app store
 .PHONY: appstore
-appstore: clean build
+appstore: clean composer build
 	mkdir -p $(sign_dir)
 	rsync -a \
 	--exclude=/.git \
@@ -71,7 +71,6 @@ appstore: clean build
 	--exclude=/node_modules \
 	--exclude=/src \
 	--exclude=/tests \
-	--exclude=/vendor \
 	--exclude=/.gitignore \
 	--exclude=/.tx \
 	--exclude=/phpunit.xml \
@@ -96,10 +95,10 @@ help:
 	@echo "Available targets:"
 	@echo "  make dev        - Build for development with watch mode"
 	@echo "  make build      - Build for production"
-	@echo "  make composer   - Install PHP dependencies"
+	@echo "  make composer   - Install PHP dependencies (production only)"
 	@echo "  make npm        - Install Node.js dependencies"
 	@echo "  make clean      - Clean build artifacts"
 	@echo "  make test       - Run tests"
 	@echo "  make lint       - Run linters"
 	@echo "  make fix        - Fix code style issues"
-	@echo "  make appstore   - Build app package for app store"
+	@echo "  make appstore   - Build app package for app store (includes vendor)"

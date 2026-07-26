@@ -10,7 +10,7 @@
 			<div v-if="previewUrl || currentIcon" class="icon-preview">
 				<img :src="previewUrl || currentIcon" alt="Icon preview">
 				<button
-					v-if="linkId"
+					v-if="linkId || pendingFile"
 					type="button"
 					class="remove-icon"
 					@click.stop="removeIcon">
@@ -57,11 +57,12 @@ export default defineComponent({
 			default: null,
 		},
 	},
-	emits: ['uploaded', 'removed'],
+	emits: ['uploaded', 'removed', 'file-selected'],
 	setup(props, { emit }) {
 		const fileInput = ref(null)
 		const isDragging = ref(false)
 		const previewUrl = ref(null)
+		const pendingFile = ref(null)
 
 		function triggerFileInput() {
 			fileInput.value?.click()
@@ -91,7 +92,9 @@ export default defineComponent({
 			reader.readAsDataURL(file)
 
 			if (!props.linkId) {
-				// For new links, only show preview - no upload yet
+				// For new links, store the file and emit event - upload after link creation
+				pendingFile.value = file
+				emit('file-selected', file)
 				return
 			}
 
@@ -120,10 +123,12 @@ export default defineComponent({
 					fileInput.value.value = ''
 				}
 
+				pendingFile.value = null
 				emit('uploaded', link)
 			} catch (error) {
 				// Clear preview on error
 				previewUrl.value = null
+				pendingFile.value = null
 				showError('Failed to upload icon: ' + error.message)
 			}
 		}
@@ -131,6 +136,8 @@ export default defineComponent({
 		async function removeIcon() {
 			if (!props.linkId) {
 				previewUrl.value = null
+				pendingFile.value = null
+				emit('file-selected', null)
 				return
 			}
 
@@ -141,6 +148,7 @@ export default defineComponent({
 
 				// Clear preview immediately
 				previewUrl.value = null
+				pendingFile.value = null
 
 				emit('removed', response.data)
 			} catch (error) {
@@ -148,14 +156,20 @@ export default defineComponent({
 			}
 		}
 
+		function getPendingFile() {
+			return pendingFile.value
+		}
+
 		return {
 			fileInput,
 			isDragging,
 			previewUrl,
+			pendingFile,
 			triggerFileInput,
 			handleFileSelect,
 			handleDrop,
 			removeIcon,
+			getPendingFile,
 		}
 	},
 })

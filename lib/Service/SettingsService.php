@@ -27,6 +27,16 @@ class SettingsService {
 			'name' => 'Slide Panel',
 			'description' => 'Description panel slides up from the bottom'
 		],
+		'slide_bottom' => [
+			'id' => 'slide_bottom',
+			'name' => 'Slide Bottom',
+			'description' => 'Compact description bar slides up from the bottom edge'
+		],
+		'tooltip' => [
+			'id' => 'tooltip',
+			'name' => 'Tooltip',
+			'description' => 'Description tooltip pops up above the link'
+		],
 	];
 
 	private const DEFAULT_EFFECT = 'blur';

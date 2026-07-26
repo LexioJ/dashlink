@@ -105,6 +105,11 @@ export default defineComponent({
 	overflow: hidden;
 	min-height: 56px;
 
+	// Tooltip needs overflow visible to show above the card
+	&.effect-tooltip {
+		overflow: visible;
+	}
+
 	// Flip effect needs perspective on parent
 	&.effect-flip {
 		perspective: 1000px;

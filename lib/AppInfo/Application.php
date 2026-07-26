@@ -17,6 +17,8 @@ class Application extends App implements IBootstrap {
 
 	public function __construct(array $urlParams = []) {
 		parent::__construct(self::APP_ID, $urlParams);
+		$vendorAutoload = __DIR__ . "/../../vendor/autoload.php";
+		if (file_exists($vendorAutoload)) { require_once $vendorAutoload; }
 	}
 
 	public function register(IRegistrationContext $context): void {
