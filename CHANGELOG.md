@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-07-26
+
+### Added
+- **Two new hover effects**: **Slide Bottom** (a compact dark description bar that slides up from the bottom edge with ellipsis truncation) and **Tooltip** (a description bubble that pops up above the link, up to 3 lines). Brings the total to five built-in effects.
+- **Duplicate link**: New copy button in the admin panel duplicates a link with all its data and icon file (server-side via `POST /api/v1/admin/duplicate/{id}`), then opens the edit dialog for the copy.
+- **Dashboard gear menu**: Quick-access gear icon on the widget linking to personal and admin DashLink settings. Only shown to admins, or to users when user-private links are enabled.
+- **Icon upload during link creation**: Icons selected while adding a new link are now uploaded automatically once the link is created, instead of being silently discarded.
+
+### Fixed
+- **Missing vendor dependency in released package**: The `enshrined/svg-sanitize` dependency was not bundled in the app store package, causing a 500 error on icon upload. The build now installs production Composer dependencies and includes `vendor/` in the release archive (fixes icon upload on fresh installs).
+- **Dialog keyboard handling**: Pressing **Enter** in the add/edit link dialog now saves the link instead of silently closing it; **Esc** closes the dialog without saving. Enter inside the description textarea still inserts a newline.
+- **Max links per user input**: The per-user link limit is now clamped to 1–50 with a visible hint, preventing a 400 error from out-of-range values.
+- **Effect icon rendering**: Logos in the Blur, Slide, and 3D Flip effects now render with `object-fit: contain` (original aspect ratio and colors, rounded corners) instead of being stretched to cover. Links without a custom icon show a placeholder.
+- **Effect triggering**: Hover effects now only trigger for links that have a description; the 3D Flip no longer flips empty cards.
+- **Duplicate "Visible to Groups" label** removed from the link form.
+
+### Changed
+- **Nextcloud compatibility**: Now supports Nextcloud 31–34 (max-version raised from 33 to 34).
+- **Effect selector**: Removed the "no value" clearable state and added a hint noting that effects only apply to links with a description.
+
+### Credits
+- Effects, bug fixes, and dashboard gear menu contributed by [@Finomosec](https://github.com/Finomosec) (#8).
+
 ## [1.2.1] - 2026-04-05
 
 ### Fixed

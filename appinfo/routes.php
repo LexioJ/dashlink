@@ -12,7 +12,6 @@ return [
         ['name' => 'link#importLinks', 'url' => '/api/v1/admin/links/import', 'verb' => 'POST'],
         ['name' => 'link#updateOrder', 'url' => '/api/v1/admin/links/order', 'verb' => 'PUT'],
         ['name' => 'link#duplicate', 'url' => '/api/v1/admin/duplicate/{id}', 'verb' => 'POST'],
-        ['name' => 'link#copyIcon', 'url' => '/api/v1/admin/copy-icon/{id}', 'verb' => 'POST'],
         ['name' => 'link#update', 'url' => '/api/v1/admin/links/{id}', 'verb' => 'PUT'],
         ['name' => 'link#delete', 'url' => '/api/v1/admin/links/{id}', 'verb' => 'DELETE'],
         ['name' => 'link#uploadIcon', 'url' => '/api/v1/admin/links/{id}/icon', 'verb' => 'POST'],

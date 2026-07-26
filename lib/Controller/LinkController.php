@@ -243,22 +243,6 @@ class LinkController extends Controller {
 	}
 
 	/**
-	 * Copy icon from one link to another
-	 *
-	 * @AdminRequired
-	 */
-	public function copyIcon(int $id, int $sourceId): JSONResponse {
-		try {
-			$link = $this->iconService->copyIconToLink($sourceId, $id);
-			return new JSONResponse($link->jsonSerialize());
-		} catch (DoesNotExistException $e) {
-			return new JSONResponse(['error' => 'Link not found'], Http::STATUS_NOT_FOUND);
-		} catch (\Exception $e) {
-			return new JSONResponse(['error' => $e->getMessage()], Http::STATUS_INTERNAL_SERVER_ERROR);
-		}
-	}
-
-	/**
 	 * Delete icon for link
 	 *
 	 * @AdminRequired

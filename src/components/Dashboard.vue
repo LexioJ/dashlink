@@ -5,16 +5,16 @@
 				<Cog :size="16" />
 			</button>
 			<div v-if="gearMenuOpen" class="gear-dropdown">
-				<a v-if="userLinksEnabled" href="/settings/user/dashlink" class="gear-item">
-					Edit my links
+				<a v-if="userLinksEnabled" :href="userSettingsUrl" class="gear-item">
+					{{ t('dashlink', 'Edit my links') }}
 				</a>
-				<a v-if="isAdmin" href="/settings/admin/dashlink" class="gear-item">
-					Edit (all users)
+				<a v-if="isAdmin" :href="adminSettingsUrl" class="gear-item">
+					{{ t('dashlink', 'Edit (all users)') }}
 				</a>
 			</div>
 		</div>
 		<div v-if="displayLinks.length === 0" class="empty-state">
-			<p>No links available</p>
+			<p>{{ t('dashlink', 'No links available') }}</p>
 		</div>
 		<div
 			v-else
@@ -34,6 +34,7 @@
 
 <script>
 import { defineComponent, computed, ref, onMounted, onUnmounted } from 'vue'
+import { generateUrl } from '@nextcloud/router'
 import Cog from 'vue-material-design-icons/Cog.vue'
 import LinkCard from './LinkCard.vue'
 
@@ -67,6 +68,9 @@ export default defineComponent({
 		const showGear = computed(() => {
 			return props.isAdmin || props.userLinksEnabled
 		})
+
+		const userSettingsUrl = generateUrl('/settings/user/dashlink')
+		const adminSettingsUrl = generateUrl('/settings/admin/dashlink')
 
 		function toggleGearMenu() {
 			gearMenuOpen.value = !gearMenuOpen.value
@@ -161,6 +165,8 @@ export default defineComponent({
 			showGear,
 			gearMenuOpen,
 			toggleGearMenu,
+			userSettingsUrl,
+			adminSettingsUrl,
 		}
 	},
 })
