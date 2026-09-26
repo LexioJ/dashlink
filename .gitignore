@@ -26,6 +26,8 @@ build/
 .warp.md
 .claude
 .claude.md
+.CLAUDE.md
+CLAUDE.md
 
 # OS/System files
 .DS_Store
