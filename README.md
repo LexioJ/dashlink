@@ -1,6 +1,6 @@
-[![Version](https://img.shields.io/badge/version-1.3.0-blue)](https://github.com/lexioj/dashlink/releases)
+[![Version](https://img.shields.io/badge/version-1.3.1-blue)](https://github.com/lexioj/dashlink/releases)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-green)](LICENSE)
-[![Nextcloud](https://img.shields.io/badge/Nextcloud-31--34-blue)](https://nextcloud.com)
+[![Nextcloud](https://img.shields.io/badge/Nextcloud-31--35-blue)](https://nextcloud.com)
 # DashLink - External Links Widget for Nextcloud
 
 A Nextcloud dashboard widget that displays external website links with customizable hover effects and optional group-based visibility. Administrators manage global links centrally; users can optionally create their own personal links.
@@ -46,7 +46,7 @@ A Nextcloud dashboard widget that displays external website links with customiza
 
 ## Requirements
 
-- **Nextcloud**: 31–34
+- **Nextcloud**: 31–35
 - **PHP**: 8.2 or higher
 - **Node.js**: 20.x or higher (22.x tested and working)
 - **npm**: 10.x or higher
