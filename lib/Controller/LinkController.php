@@ -303,7 +303,7 @@ class LinkController extends Controller {
 	 * @AdminRequired
 	 */
 	public function getGroups(): JSONResponse {
-		$groups = $this->groupManager->search('');
+		$groups = $this->groupManager->search('', -1);
 
 		$groupData = array_map(function ($group) {
 			return [
