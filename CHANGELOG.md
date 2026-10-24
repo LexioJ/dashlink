@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-10-24
+
+### Added
+- **Unified search**: DashLink links now appear in Nextcloud global search (respecting group visibility)
+- **Link health check**: daily background job marks each link OK / Redirect / Broken / Unknown with a badge and "check now" in the admin panel
+- **Admin-suggested links**: admins can publish suggestions that users add to their personal links with one click
+
+### Fixed
+- Group picker no longer caps the group list at 20 entries (#6)
+
 ## [1.3.1] - 2026-09-26
 
 ### Changed

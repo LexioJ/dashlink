@@ -1,4 +1,4 @@
-[![Version](https://img.shields.io/badge/version-1.3.1-blue)](https://github.com/lexioj/dashlink/releases)
+[![Version](https://img.shields.io/badge/version-1.4.0-blue)](https://github.com/lexioj/dashlink/releases)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-green)](LICENSE)
 [![Nextcloud](https://img.shields.io/badge/Nextcloud-31--35-blue)](https://nextcloud.com)
 # DashLink - External Links Widget for Nextcloud
@@ -18,6 +18,7 @@ A Nextcloud dashboard widget that displays external website links with customiza
   - **Slide Bottom**: Compact description bar slides up from the bottom edge
   - **Tooltip**: Description bubble pops up above the link
 - **Group-Based Visibility**: Show links only to specific Nextcloud groups (supports group names with dots, spaces, and special characters)
+- **Unified Search**: Find DashLink links in Nextcloud's global search (respecting group visibility)
 - **Live Preview**: Real-time preview in the admin panel with group filter simulation
 - **Responsive Design**: Adapts from 1 to 2 columns based on viewport
 - **Dark Mode Compatible**: Full support for Nextcloud dark theme
@@ -31,6 +32,8 @@ A Nextcloud dashboard widget that displays external website links with customiza
   - Export all links to JSON with absolute Nextcloud URLs for icons
   - Import links from JSON with automatic duplicate detection (by title or URL)
   - Download and save icons from external URLs during import
+- **Link Health Check**: Daily background job checks link status (OK / Redirect / Broken / Unknown) with visual badges and a "check now" button for immediate verification
+- **Admin-Suggested Links**: Publish suggested links that users can adopt with one click, with toggle to enable/disable suggestions globally
 - **Modern UI**: Nextcloud-style toggle switches, modals, and responsive layouts
 - **Group Management**: Select multiple groups with autocomplete picker
 - **Icon Management**: Upload, delete, or download icons from URLs
@@ -42,6 +45,7 @@ A Nextcloud dashboard widget that displays external website links with customiza
 - Users can create their own personal dashboard links, visible only to themselves
 - Managed via **Settings → Personal → DashLink**
 - Full feature parity: custom icons, drag-drop reorder, import/export
+- Adopt admin-suggested links with one click (when enabled by administrators)
 - Only available when enabled by an administrator
 
 ## Requirements
