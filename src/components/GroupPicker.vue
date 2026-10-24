@@ -4,7 +4,7 @@
 			v-model="selectedGroups"
 			:input-label="label"
 			:options="availableGroups"
-			:placeholder="placeholder || t('dashlink', 'Select groups...')"
+			:placeholder="placeholder || t('dashlink', 'Select groups…')"
 			:disabled="disabled"
 			:multiple="true"
 			:searchable="true"

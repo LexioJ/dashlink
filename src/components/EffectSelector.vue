@@ -10,7 +10,7 @@
 		<NcSelect
 			v-model="selectedEffect"
 			:options="effects"
-			:placeholder="t('dashlink', 'Select effect...')"
+			:placeholder="t('dashlink', 'Select effect…')"
 			:clearable="false"
 			label="name"
 			@update:modelValue="onSelectionChange" />
