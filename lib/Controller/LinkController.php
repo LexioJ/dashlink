@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace OCA\DashLink\Controller;
 
+use OCA\DashLink\Service\HealthCheckService;
 use OCA\DashLink\Service\IconService;
 use OCA\DashLink\Service\LinkService;
 use OCA\DashLink\Service\RateLimitService;
@@ -23,6 +24,7 @@ class LinkController extends Controller {
 	private IURLGenerator $urlGenerator;
 	private RateLimitService $rateLimitService;
 	private IUserSession $userSession;
+	private HealthCheckService $healthCheckService;
 
 	public function __construct(
 		string $appName,
@@ -32,7 +34,8 @@ class LinkController extends Controller {
 		IGroupManager $groupManager,
 		IURLGenerator $urlGenerator,
 		RateLimitService $rateLimitService,
-		IUserSession $userSession
+		IUserSession $userSession,
+		HealthCheckService $healthCheckService
 	) {
 		parent::__construct($appName, $request);
 		$this->linkService = $linkService;
@@ -41,6 +44,7 @@ class LinkController extends Controller {
 		$this->urlGenerator = $urlGenerator;
 		$this->rateLimitService = $rateLimitService;
 		$this->userSession = $userSession;
+		$this->healthCheckService = $healthCheckService;
 	}
 
 	/**
@@ -270,6 +274,21 @@ class LinkController extends Controller {
 		} catch (\Exception $e) {
 			return new JSONResponse(['error' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
 		}
+	}
+
+	/**
+	 * Re-check one link's health immediately (admin only)
+	 *
+	 * @AdminRequired
+	 */
+	public function checkHealth(int $id): JSONResponse {
+		try {
+			$link = $this->linkService->getLink($id);
+		} catch (DoesNotExistException $e) {
+			return new JSONResponse(['error' => 'Link not found'], Http::STATUS_NOT_FOUND);
+		}
+		$this->healthCheckService->checkLink($link);
+		return new JSONResponse($link->jsonSerialize());
 	}
 
 	/**

@@ -46,6 +46,10 @@ Admin Panel:
         <php min-version="8.2"/>
     </dependencies>
 
+    <background-jobs>
+        <job>OCA\DashLink\BackgroundJob\LinkHealthCheckJob</job>
+    </background-jobs>
+
     <settings>
         <admin-section>OCA\DashLink\Settings\AdminSection</admin-section>
         <admin>OCA\DashLink\Settings\Admin</admin>

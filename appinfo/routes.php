@@ -17,6 +17,7 @@ return [
         ['name' => 'link#uploadIcon', 'url' => '/api/v1/admin/links/{id}/icon', 'verb' => 'POST'],
         ['name' => 'link#deleteIcon', 'url' => '/api/v1/admin/links/{id}/icon', 'verb' => 'DELETE'],
         ['name' => 'link#getGroups', 'url' => '/api/v1/admin/groups', 'verb' => 'GET'],
+        ['name' => 'link#checkHealth', 'url' => '/api/v1/admin/links/{id}/health-check', 'verb' => 'POST'],
 
         // User Link Routes (user-private links)
         ['name' => 'userLink#index', 'url' => '/api/v1/user/links', 'verb' => 'GET'],
