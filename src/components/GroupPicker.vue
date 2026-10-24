@@ -94,7 +94,7 @@ export default defineComponent({
 				const response = await axios.get(generateOcsUrl('cloud/groups/details'), {
 					params: {
 						search: query || '',
-						limit: 20,
+						limit: 500,
 						offset: 0,
 					},
 				})
