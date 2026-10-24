@@ -131,6 +131,7 @@ class LinkService {
 		$link->setGroups($groups);
 		$link->setPosition($data['position'] ?? 0);
 		$link->setEnabled($data['enabled'] ?? 1);
+		$link->setIsSuggestion(!empty($data['isSuggestion']) ? 1 : 0);
 		$link->setCreatedAt(new \DateTime());
 		$link->setUpdatedAt(new \DateTime());
 		if (!empty($data["iconPath"])) {
@@ -173,6 +174,9 @@ class LinkService {
 		}
 		if (isset($data['enabled'])) {
 			$link->setEnabled($data['enabled']);
+		}
+		if (array_key_exists('isSuggestion', $data)) {
+			$link->setIsSuggestion(!empty($data['isSuggestion']) ? 1 : 0);
 		}
 
 		$link->setUpdatedAt(new \DateTime());

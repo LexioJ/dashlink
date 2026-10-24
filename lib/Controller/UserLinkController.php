@@ -465,4 +465,34 @@ class UserLinkController extends Controller {
 			return new JSONResponse(['error' => $e->getMessage()], Http::STATUS_INTERNAL_SERVER_ERROR);
 		}
 	}
+
+	/**
+	 * List admin-suggested links available to the current user
+	 *
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
+	public function suggestions(): JSONResponse {
+		return new JSONResponse($this->userLinkService->getAvailableSuggestions());
+	}
+
+	/**
+	 * Adopt an admin-suggested link into the user's personal links
+	 *
+	 * @NoAdminRequired
+	 */
+	public function adoptSuggestion(int $id): JSONResponse {
+		try {
+			$link = $this->userLinkService->adoptSuggestion($id, $this->iconService);
+			return new JSONResponse($link->jsonSerialize());
+		} catch (\RuntimeException $e) {
+			$status = match ($e->getMessage()) {
+				'feature_disabled' => Http::STATUS_FORBIDDEN,
+				'not_visible' => Http::STATUS_NOT_FOUND,
+				'already_adopted', 'limit_reached' => Http::STATUS_UNPROCESSABLE_ENTITY,
+				default => Http::STATUS_INTERNAL_SERVER_ERROR,
+			};
+			return new JSONResponse(['error' => $e->getMessage()], $status);
+		}
+	}
 }

@@ -6,6 +6,7 @@ namespace OCA\DashLink\Service;
 use OCA\DashLink\Db\Link;
 use OCA\DashLink\Db\LinkMapper;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\IGroupManager;
 use OCP\IUserSession;
 
 /**
@@ -14,17 +15,20 @@ use OCP\IUserSession;
 class UserLinkService {
 	private LinkMapper $mapper;
 	private IUserSession $userSession;
+	private IGroupManager $groupManager;
 	private SecurityService $securityService;
 	private SettingsService $settingsService;
 
 	public function __construct(
 		LinkMapper $mapper,
 		IUserSession $userSession,
+		IGroupManager $groupManager,
 		SecurityService $securityService,
 		SettingsService $settingsService
 	) {
 		$this->mapper = $mapper;
 		$this->userSession = $userSession;
+		$this->groupManager = $groupManager;
 		$this->securityService = $securityService;
 		$this->settingsService = $settingsService;
 	}
@@ -340,5 +344,91 @@ class UserLinkService {
 	public function getUserLink(int $id): Link {
 		$userId = $this->getCurrentUserId();
 		return $this->mapper->findByIdForUser($id, $userId);
+	}
+
+	/**
+	 * Merge the adopted flag into serialized suggestions
+	 *
+	 * @param \OCA\DashLink\Db\Link[] $suggestions
+	 * @param int[] $adoptedIds
+	 * @return array[]
+	 */
+	public static function markAdopted(array $suggestions, array $adoptedIds): array {
+		return array_map(function ($link) use ($adoptedIds) {
+			$json = $link->jsonSerialize();
+			$json['adopted'] = in_array($link->getId(), $adoptedIds, true);
+			return $json;
+		}, $suggestions);
+	}
+
+	/**
+	 * Suggestions visible to the current user, with adopted flag
+	 */
+	public function getAvailableSuggestions(): array {
+		if (!$this->isFeatureEnabled()) {
+			return [];
+		}
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return [];
+		}
+		$userGroups = $this->groupManager->getUserGroupIds($user);
+		$suggestions = $this->mapper->findSuggestionsForUser($userGroups);
+		$adoptedIds = $this->mapper->findAdoptedSuggestionIds($user->getUID());
+		return self::markAdopted($suggestions, $adoptedIds);
+	}
+
+	/**
+	 * Copy a suggestion into the user's personal links
+	 *
+	 * @throws \RuntimeException feature_disabled|limit_reached|already_adopted|not_visible
+	 */
+	public function adoptSuggestion(int $suggestionId, IconService $iconService): Link {
+		if (!$this->isFeatureEnabled()) {
+			throw new \RuntimeException('feature_disabled');
+		}
+		$userId = $this->getCurrentUserId();
+		$user = $this->userSession->getUser();
+		$userGroups = $this->groupManager->getUserGroupIds($user);
+
+		$visible = $this->mapper->findSuggestionsForUser($userGroups);
+		$suggestion = null;
+		foreach ($visible as $candidate) {
+			if ($candidate->getId() === $suggestionId) {
+				$suggestion = $candidate;
+				break;
+			}
+		}
+		if ($suggestion === null) {
+			throw new \RuntimeException('not_visible');
+		}
+		if (in_array($suggestionId, $this->mapper->findAdoptedSuggestionIds($userId), true)) {
+			throw new \RuntimeException('already_adopted');
+		}
+		if ($this->getUserLinkCount() >= $this->getLinkLimit()) {
+			throw new \RuntimeException('limit_reached');
+		}
+
+		$link = new Link();
+		$link->setTitle($suggestion->getTitle());
+		$link->setUrl($suggestion->getUrl());
+		$link->setDescription($suggestion->getDescription());
+		$link->setTarget($suggestion->getTarget());
+		$link->setUserId($userId);
+		$link->setPosition($this->getUserLinkCount());
+		$link->setEnabled(1);
+		$link->setSuggestedFrom($suggestionId);
+		$link->setCreatedAt(new \DateTime());
+		$link->setUpdatedAt(new \DateTime());
+		$newLink = $this->mapper->insert($link);
+
+		if ($suggestion->getIconPath() !== null) {
+			try {
+				$newLink = $iconService->copyIconToLink($suggestionId, $newLink->getId());
+			} catch (\Throwable $e) {
+				// Icon copy failure must not block adoption; link stays icon-less
+			}
+		}
+		return $newLink;
 	}
 }

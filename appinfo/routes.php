@@ -30,6 +30,8 @@ return [
         ['name' => 'userLink#uploadIcon', 'url' => '/api/v1/user/links/{id}/icon', 'verb' => 'POST'],
         ['name' => 'userLink#deleteIcon', 'url' => '/api/v1/user/links/{id}/icon', 'verb' => 'DELETE'],
         ['name' => 'userLink#getIcon', 'url' => '/api/v1/user/links/{id}/icon', 'verb' => 'GET'],
+        ['name' => 'userLink#suggestions', 'url' => '/api/v1/user/suggestions', 'verb' => 'GET'],
+        ['name' => 'userLink#adoptSuggestion', 'url' => '/api/v1/user/suggestions/{id}/adopt', 'verb' => 'POST'],
 
         // Settings Routes
         ['name' => 'settings#index', 'url' => '/api/v1/admin/settings', 'verb' => 'GET'],
