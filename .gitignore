@@ -60,3 +60,4 @@ tests/
 # Environment files
 .env
 .env.local
+docs/superpowers/
