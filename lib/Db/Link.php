@@ -33,6 +33,16 @@ use OCP\AppFramework\Db\Entity;
  * @method void setCreatedAt(\DateTime $createdAt)
  * @method \DateTime getUpdatedAt()
  * @method void setUpdatedAt(\DateTime $updatedAt)
+ * @method string getHealthStatus()
+ * @method void setHealthStatus(string $healthStatus)
+ * @method \DateTime|null getHealthCheckedAt()
+ * @method void setHealthCheckedAt(?\DateTime $healthCheckedAt)
+ * @method string|null getHealthDetail()
+ * @method void setHealthDetail(?string $healthDetail)
+ * @method int getIsSuggestion()
+ * @method void setIsSuggestion(int $isSuggestion)
+ * @method int|null getSuggestedFrom()
+ * @method void setSuggestedFrom(?int $suggestedFrom)
  */
 class Link extends Entity implements JsonSerializable {
 	protected $title = '';
@@ -47,6 +57,11 @@ class Link extends Entity implements JsonSerializable {
 	protected ?string $userId = null;
 	protected $createdAt;
 	protected $updatedAt;
+	protected $healthStatus = 'unknown';
+	protected $healthCheckedAt;
+	protected $healthDetail;
+	protected $isSuggestion = 0;
+	protected ?int $suggestedFrom = null;
 
 	public function __construct() {
 		$this->addType('id', 'integer');
@@ -62,6 +77,11 @@ class Link extends Entity implements JsonSerializable {
 		$this->addType('userId', 'string');
 		$this->addType('createdAt', 'datetime');
 		$this->addType('updatedAt', 'datetime');
+		$this->addType('healthStatus', 'string');
+		$this->addType('healthCheckedAt', 'datetime');
+		$this->addType('healthDetail', 'string');
+		$this->addType('isSuggestion', 'integer');
+		$this->addType('suggestedFrom', 'integer');
 	}
 
 	/**
@@ -109,6 +129,11 @@ class Link extends Entity implements JsonSerializable {
 			'position' => $this->getPosition(),
 			'enabled' => $this->getEnabled(),
 			'userId' => $this->getUserId(),
+			'healthStatus' => $this->getHealthStatus(),
+			'healthCheckedAt' => $this->getHealthCheckedAt()?->format(\DateTime::ATOM),
+			'healthDetail' => $this->getHealthDetail(),
+			'isSuggestion' => $this->getIsSuggestion() === 1,
+			'suggestedFrom' => $this->getSuggestedFrom(),
 			'createdAt' => $this->getCreatedAt()?->format(\DateTime::ATOM),
 			'updatedAt' => $this->getUpdatedAt()?->format(\DateTime::ATOM),
 		];
