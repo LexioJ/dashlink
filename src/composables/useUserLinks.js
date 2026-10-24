@@ -7,6 +7,7 @@ export function useUserLinks() {
 	const loading = ref(false)
 	const linkCount = ref(0)
 	const linkLimit = ref(10)
+	const suggestions = ref([])
 
 	async function fetchLinks() {
 		loading.value = true
@@ -167,6 +168,40 @@ export function useUserLinks() {
 		}
 	}
 
+	async function fetchSuggestions() {
+		try {
+			const response = await axios.get(generateUrl('/apps/dashlink/api/v1/user/suggestions'))
+			suggestions.value = response.data
+		} catch (error) {
+			console.error('Failed to fetch suggestions:', error)
+			throw error
+		}
+	}
+
+	async function adoptSuggestion(id) {
+		try {
+			const response = await axios.post(
+				generateUrl('/apps/dashlink/api/v1/user/suggestions/{id}/adopt', { id })
+			)
+			const suggestion = suggestions.value.find(s => s.id === id)
+			if (suggestion) {
+				suggestion.adopted = true
+			}
+			const link = {
+				...response.data,
+				iconUrl: response.data.iconPath
+					? generateUrl('/apps/dashlink/api/v1/user/links/{id}/icon', { id: response.data.id })
+					: null
+			}
+			links.value.push(link)
+			linkCount.value++
+			return link
+		} catch (error) {
+			console.error('Failed to adopt suggestion:', error)
+			throw error
+		}
+	}
+
 	async function deleteIcon(id) {
 		try {
 			const response = await axios.delete(
@@ -195,6 +230,7 @@ export function useUserLinks() {
 		loading,
 		linkCount,
 		linkLimit,
+		suggestions,
 		fetchLinks,
 		createLink,
 		updateLink,
@@ -204,5 +240,7 @@ export function useUserLinks() {
 		importLinks,
 		uploadIcon,
 		deleteIcon,
+		fetchSuggestions,
+		adoptSuggestion,
 	}
 }

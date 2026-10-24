@@ -38,7 +38,8 @@
 							</NcButton>
 							<NcButton
 								type="primary"
-								:disabled="linkCount >= linkLimit"
+								:disabled="atLinkLimit"
+								:title="atLinkLimit ? t('dashlink', 'Personal link limit reached') : null"
 								@click="showLinkForm = true">
 								<template #icon>
 									<Plus :size="20" />
@@ -85,6 +86,12 @@
 								</div>
 							</div>
 							<div class="link-actions">
+								<span
+									class="health-badge"
+									:class="`health-badge--${link.healthStatus || 'unknown'}`"
+									:title="healthTooltip(link)">
+									{{ healthLabel(link.healthStatus) }}
+								</span>
 								<NcButton
 									:type="link.enabled ? 'success' : 'secondary'"
 									@click="toggleEnabled(link)">
@@ -110,6 +117,30 @@
 							</div>
 						</div>
 					</div>
+				</div>
+
+				<!-- Suggestions -->
+				<div v-if="suggestions.length > 0" class="suggestions-section">
+					<h3>{{ t('dashlink', 'Suggested by your organisation') }}</h3>
+					<ul class="suggestions-list">
+						<li v-for="suggestion in suggestions" :key="suggestion.id" class="suggestion-row">
+							<img v-if="suggestion.iconPath"
+								:src="suggestionIconUrl(suggestion)"
+								class="suggestion-icon" alt="">
+							<div class="suggestion-text">
+								<strong>{{ suggestion.title }}</strong>
+								<span v-if="suggestion.description" class="suggestion-description">{{ suggestion.description }}</span>
+							</div>
+							<NcButton
+								v-if="!suggestion.adopted"
+								:disabled="atLinkLimit"
+								:title="atLinkLimit ? t('dashlink', 'Personal link limit reached') : null"
+								@click="onAdopt(suggestion)">
+								{{ t('dashlink', 'Add') }}
+							</NcButton>
+							<span v-else class="suggestion-adopted">{{ t('dashlink', 'Added') }}</span>
+						</li>
+					</ul>
 				</div>
 
 				<!-- Link Form Modal -->
@@ -150,6 +181,8 @@ import Eye from 'vue-material-design-icons/Eye.vue'
 import EyeOff from 'vue-material-design-icons/EyeOff.vue'
 import Download from 'vue-material-design-icons/Download.vue'
 import Upload from 'vue-material-design-icons/Upload.vue'
+import { generateUrl } from '@nextcloud/router'
+import { translate as t } from '@nextcloud/l10n'
 import { showSuccess, showError } from '../utils/notifications.js'
 import WidgetPreview from './WidgetPreview.vue'
 import UserLinkForm from './UserLinkForm.vue'
@@ -171,7 +204,7 @@ export default defineComponent({
 		UserLinkForm,
 	},
 	setup() {
-		const { links, linkCount, linkLimit, fetchLinks, createLink, updateLink, deleteLink, updateOrder, exportLinks, importLinks } = useUserLinks()
+		const { links, linkCount, linkLimit, suggestions, fetchLinks, createLink, updateLink, deleteLink, updateOrder, exportLinks, importLinks, fetchSuggestions, adoptSuggestion } = useUserLinks()
 
 		const showLinkForm = ref(false)
 		const editingLink = ref(null)
@@ -196,6 +229,8 @@ export default defineComponent({
 			return Math.min((linkCount.value / linkLimit.value) * 100, 100)
 		})
 
+		const atLinkLimit = computed(() => linkCount.value >= linkLimit.value)
+
 		// Preview only enabled links, limited to 10
 		const previewLinks = computed(() => {
 			return sortedLinks.value.filter(l => l.enabled).slice(0, 10)
@@ -203,6 +238,7 @@ export default defineComponent({
 
 		onMounted(async () => {
 			await fetchLinks()
+			await fetchSuggestions()
 		})
 
 		function editLink(link) {
@@ -254,6 +290,40 @@ export default defineComponent({
 				showSuccess(link.enabled ? 'Link disabled' : 'Link enabled')
 			} catch (error) {
 				showError('Failed to update link: ' + error.message)
+			}
+		}
+
+		function healthLabel(status) {
+			return {
+				ok: t('dashlink', 'OK'),
+				redirect: t('dashlink', 'Redirect'),
+				broken: t('dashlink', 'Broken'),
+				unknown: t('dashlink', 'Unknown'),
+			}[status || 'unknown']
+		}
+
+		function healthTooltip(link) {
+			if (!link.healthCheckedAt) {
+				return t('dashlink', 'Not checked yet')
+			}
+			const when = new Date(link.healthCheckedAt).toLocaleString()
+			return link.healthDetail ? `${link.healthDetail} — ${when}` : when
+		}
+
+		function suggestionIconUrl(suggestion) {
+			return generateUrl('/apps/dashlink/api/v1/links/{id}/icon', { id: suggestion.id })
+		}
+
+		async function onAdopt(suggestion) {
+			try {
+				await adoptSuggestion(suggestion.id)
+				showSuccess(t('dashlink', 'Link added to your personal links'))
+			} catch (error) {
+				if (error.response?.data?.error === 'limit_reached') {
+					showError(t('dashlink', 'Personal link limit reached'))
+				} else {
+					showError(t('dashlink', 'Could not add link'))
+				}
 			}
 		}
 
@@ -363,9 +433,12 @@ export default defineComponent({
 		}
 
 		return {
+			t,
 			links,
 			linkCount,
 			linkLimit,
+			suggestions,
+			atLinkLimit,
 			hoverEffect,
 			sortedLinks,
 			previewLinks,
@@ -381,6 +454,10 @@ export default defineComponent({
 			handleIconUpdated,
 			confirmDelete,
 			toggleEnabled,
+			healthLabel,
+			healthTooltip,
+			suggestionIconUrl,
+			onAdopt,
 			handleDragStart,
 			handleDragEnd,
 			handleDragOver,
@@ -565,7 +642,99 @@ export default defineComponent({
 
 .link-actions {
 	display: flex;
+	align-items: center;
 	gap: 4px;
+}
+
+.health-badge {
+	border-radius: var(--border-radius-pill);
+	padding: 2px 8px;
+	font-size: 0.8em;
+	white-space: nowrap;
+}
+
+.health-badge--ok {
+	background: var(--color-success);
+	color: var(--color-primary-element-text);
+}
+
+.health-badge--redirect {
+	background: var(--color-warning);
+	color: var(--color-primary-element-text);
+}
+
+.health-badge--broken {
+	background: var(--color-error);
+	color: var(--color-primary-element-text);
+}
+
+.health-badge--unknown {
+	background: var(--color-background-dark);
+	color: var(--color-text-maxcontrast);
+}
+
+.suggestions-section {
+	background: var(--color-main-background);
+	border: 1px solid var(--color-border);
+	border-radius: var(--border-radius-large);
+	padding: 20px;
+	margin-top: 20px;
+
+	h3 {
+		margin: 0 0 16px 0;
+		font-size: 18px;
+		font-weight: 600;
+	}
+}
+
+.suggestions-list {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.suggestion-row {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 12px;
+	background: var(--color-background-hover);
+	border-radius: var(--border-radius);
+}
+
+.suggestion-icon {
+	width: 32px;
+	height: 32px;
+	border-radius: var(--border-radius);
+	flex-shrink: 0;
+}
+
+.suggestion-text {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-width: 0;
+
+	strong {
+		font-weight: 500;
+	}
+
+	.suggestion-description {
+		font-size: 12px;
+		color: var(--color-text-maxcontrast);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+}
+
+.suggestion-adopted {
+	font-size: 13px;
+	color: var(--color-text-maxcontrast);
+	white-space: nowrap;
 }
 
 .empty-state {
