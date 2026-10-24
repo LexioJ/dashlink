@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace OCA\DashLink\AppInfo;
 
 use OCA\DashLink\Dashboard\DashLinkWidget;
+use OCA\DashLink\Search\LinkSearchProvider;
 use OCA\DashLink\Service\RateLimitService;
 use OCA\DashLink\Service\SecurityService;
 use OCP\AppFramework\App;
@@ -24,6 +25,9 @@ class Application extends App implements IBootstrap {
 	public function register(IRegistrationContext $context): void {
 		// Register dashboard widget
 		$context->registerDashboardWidget(DashLinkWidget::class);
+
+		// Register unified search provider
+		$context->registerSearchProvider(LinkSearchProvider::class);
 
 		// Register security services
 		$context->registerService(SecurityService::class, function ($c) {
