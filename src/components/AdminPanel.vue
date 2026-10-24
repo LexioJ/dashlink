@@ -1,22 +1,22 @@
 <template>
 	<div class="dashlink-admin">
 		<div class="admin-header">
-			<h2>DashLink Settings</h2>
-			<p class="subtitle">Manage external links displayed on the dashboard</p>
+			<h2>{{ t('dashlink', 'DashLink Settings') }}</h2>
+			<p class="subtitle">{{ t('dashlink', 'Manage external links displayed on the dashboard') }}</p>
 		</div>
 
 		<div class="admin-layout">
 			<div class="admin-main">
 				<!-- Widget Title -->
 				<div class="setting-section">
-					<label for="widget-title">Widget Title</label>
+					<label for="widget-title">{{ t('dashlink', 'Widget Title') }}</label>
 					<input
 						id="widget-title"
 						v-model="widgetTitle"
 						type="text"
 						placeholder="DashLink"
 						@input="debouncedSaveSettings" />
-					<p class="setting-hint">The title displayed in the dashboard widget</p>
+					<p class="setting-hint">{{ t('dashlink', 'The title displayed in the dashboard widget') }}</p>
 				</div>
 
 				<!-- Effect Selector -->
@@ -26,17 +26,17 @@
 
 				<!-- User Links Settings -->
 				<div class="setting-section">
-					<h4>User Links</h4>
-					<p class="setting-hint">Allow users to create their own personal links visible only to them.</p>
+					<h4>{{ t('dashlink', 'User Links') }}</h4>
+					<p class="setting-hint">{{ t('dashlink', 'Allow users to create their own personal links visible only to them.') }}</p>
 					<div class="user-links-settings">
 						<NcCheckboxRadioSwitch
 							v-model="userLinksEnabled"
 							type="switch"
 							@update:modelValue="saveSettings">
-							Allow users to create personal links
+							{{ t('dashlink', 'Allow users to create personal links') }}
 						</NcCheckboxRadioSwitch>
 						<div v-if="userLinksEnabled" class="user-limit-setting">
-							<label for="user-link-limit">Maximum links per user</label>
+							<label for="user-link-limit">{{ t('dashlink', 'Maximum links per user') }}</label>
 							<input
 								id="user-link-limit"
 								v-model.number="userLinkLimit"
@@ -44,7 +44,7 @@
 								min="1"
 								max="50"
 								@input="handleLinkLimitInput">
-							<span class="limit-hint">(1 - 50)</span>
+							<span class="limit-hint">{{ t('dashlink', '(1 - 50)') }}</span>
 						</div>
 					</div>
 				</div>
@@ -52,7 +52,7 @@
 				<!-- Links Management -->
 				<div class="links-section">
 					<div class="section-header">
-						<h3>Links</h3>
+						<h3>{{ t('dashlink', 'Links') }}</h3>
 						<div class="section-actions">
 							<NcButton
 								type="secondary"
@@ -60,7 +60,7 @@
 								<template #icon>
 									<Upload :size="20" />
 								</template>
-								Import List
+								{{ t('dashlink', 'Import List') }}
 							</NcButton>
 							<NcButton
 								type="secondary"
@@ -68,7 +68,7 @@
 								<template #icon>
 									<Download :size="20" />
 								</template>
-								Export List
+								{{ t('dashlink', 'Export List') }}
 							</NcButton>
 							<NcButton
 								type="primary"
@@ -76,7 +76,7 @@
 								<template #icon>
 									<Plus :size="20" />
 								</template>
-								Add Link
+								{{ t('dashlink', 'Add Link') }}
 							</NcButton>
 						</div>
 					</div>
@@ -100,7 +100,7 @@
 					</div>
 
 					<div v-if="filteredLinks.length === 0" class="empty-state">
-						<p>No links yet. Click "Add Link" to create one.</p>
+						<p>{{ t('dashlink', 'No links yet. Click "Add Link" to create one.') }}</p>
 					</div>
 
 					<div v-else class="links-list">
@@ -188,7 +188,7 @@
 					v-if="showLinkForm"
 					@close="closeLinkForm">
 					<div class="modal-content">
-						<h2>{{ editingLink ? 'Edit Link' : 'Add Link' }}</h2>
+						<h2>{{ editingLink ? t('dashlink', 'Edit Link') : t('dashlink', 'Add Link') }}</h2>
 						<LinkForm
 							:link="editingLink"
 							:groups="groups"
@@ -202,13 +202,13 @@
 
 			<div class="admin-sidebar">
 				<div class="preview-controls">
-					<h3>Preview</h3>
+					<h3>{{ t('dashlink', 'Preview') }}</h3>
 					<div class="group-filter-section">
-						<label>Filter by Group (Simulation)</label>
+						<label>{{ t('dashlink', 'Filter by Group (Simulation)') }}</label>
 						<GroupPicker
 							v-model="previewFilterGroups"
-							placeholder="All users (no filter)"
-							hint="Simulate how the widget appears to specific groups" />
+							:placeholder="t('dashlink', 'All users (no filter)')"
+							:hint="t('dashlink', 'Simulate how the widget appears to specific groups')" />
 					</div>
 				</div>
 				<WidgetPreview :links="filteredPreviewLinks" :effect="hoverEffect" :title="widgetTitle" />
@@ -380,10 +380,10 @@ export default defineComponent({
 
 				if (editingLink.value) {
 					await updateLink(editingLink.value.id, linkData)
-					showSuccess('Link updated successfully')
+					showSuccess(t('dashlink', 'Link updated successfully'))
 				} else {
 					const newLink = await createLink(linkData)
-					showSuccess('Link created successfully')
+					showSuccess(t('dashlink', 'Link created successfully'))
 
 					// If there was a pending icon file, upload it now that we have the link ID
 					if (pendingIconFile && newLink && newLink.id) {
@@ -403,13 +403,13 @@ export default defineComponent({
 							// Refresh links to show the icon
 							await fetchLinks()
 						} catch (iconError) {
-							showError('Link created but icon upload failed: ' + iconError.message)
+							showError(t('dashlink', 'Link created but icon upload failed: {message}', { message: iconError.message }))
 						}
 					}
 				}
 				closeLinkForm()
 			} catch (error) {
-				showError('Failed to save link: ' + error.message)
+				showError(t('dashlink', 'Failed to save link: {message}', { message: error.message }))
 			}
 		}
 
@@ -424,12 +424,12 @@ export default defineComponent({
 		}
 
 		async function confirmDelete(link) {
-			if (confirm(`Are you sure you want to delete "${link.title}"?`)) {
+			if (confirm(t('dashlink', 'Are you sure you want to delete "{title}"?', { title: link.title }))) {
 				try {
 					await deleteLink(link.id)
-					showSuccess('Link deleted successfully')
+					showSuccess(t('dashlink', 'Link deleted successfully'))
 				} catch (error) {
-					showError('Failed to delete link: ' + error.message)
+					showError(t('dashlink', 'Failed to delete link: {message}', { message: error.message }))
 				}
 			}
 		}
@@ -455,16 +455,16 @@ export default defineComponent({
 			try {
 				await checkHealth(link.id)
 			} catch (error) {
-				showError('Failed to check link health: ' + error.message)
+				showError(t('dashlink', 'Failed to check link health: {message}', { message: error.message }))
 			}
 		}
 
 		async function toggleEnabled(link) {
 			try {
 				await updateLink(link.id, { enabled: !link.enabled })
-				showSuccess(link.enabled ? 'Link disabled' : 'Link enabled')
+				showSuccess(link.enabled ? t('dashlink', 'Link disabled') : t('dashlink', 'Link enabled'))
 			} catch (error) {
-				showError('Failed to update link: ' + error.message)
+				showError(t('dashlink', 'Failed to update link: {message}', { message: error.message }))
 			}
 		}
 
@@ -474,20 +474,20 @@ export default defineComponent({
 					generateUrl('/apps/dashlink/api/v1/admin/duplicate/{id}', { id: link.id })
 				)
 				await fetchLinks()
-				showSuccess('Link duplicated successfully')
+				showSuccess(t('dashlink', 'Link duplicated successfully'))
 				const newLink = links.value.find(l => l.id === response.data.id) || response.data
 				editLink(newLink)
 			} catch (error) {
-				showError('Failed to duplicate link: ' + error.message)
+				showError(t('dashlink', 'Failed to duplicate link: {message}', { message: error.message }))
 			}
 		}
 
 		async function saveSettings() {
 			try {
 				await saveSettingsComposable()
-				showSuccess('Settings saved')
+				showSuccess(t('dashlink', 'Settings saved'))
 			} catch (error) {
-				showError('Failed to save settings: ' + error.message)
+				showError(t('dashlink', 'Failed to save settings: {message}', { message: error.message }))
 			}
 		}
 
@@ -549,9 +549,9 @@ export default defineComponent({
 			try {
 				const linkIds = newOrder.map(l => l.id)
 				await updateOrder(linkIds)
-				showSuccess('Link order updated')
+				showSuccess(t('dashlink', 'Link order updated'))
 			} catch (error) {
-				showError('Failed to update order: ' + error.message)
+				showError(t('dashlink', 'Failed to update order: {message}', { message: error.message }))
 				// Revert on error
 				await fetchLinks()
 			}
@@ -572,9 +572,9 @@ export default defineComponent({
 				link.click()
 				document.body.removeChild(link)
 				URL.revokeObjectURL(url)
-				showSuccess('Links exported successfully')
+				showSuccess(t('dashlink', 'Links exported successfully'))
 			} catch (error) {
-				showError('Failed to export links: ' + error.message)
+				showError(t('dashlink', 'Failed to export links: {message}', { message: error.message }))
 			}
 		}
 
@@ -588,15 +588,15 @@ export default defineComponent({
 
 			try {
 				const result = await importLinks(file)
-				const message = `Import complete: ${result.imported} imported, ${result.skipped} skipped`
+				const message = t('dashlink', 'Import complete: {imported} imported, {skipped} skipped', { imported: result.imported, skipped: result.skipped })
 				if (result.errors && result.errors.length > 0) {
-					showError(message + `. Errors: ${result.errors.join(', ')}`)
+					showError(message + t('dashlink', '. Errors: {errors}', { errors: result.errors.join(', ') }))
 				} else {
 					showSuccess(message)
 				}
 				await fetchLinks()
 			} catch (error) {
-				showError('Failed to import links: ' + error.message)
+				showError(t('dashlink', 'Failed to import links: {message}', { message: error.message }))
 			} finally {
 				// Reset file input
 				event.target.value = ''

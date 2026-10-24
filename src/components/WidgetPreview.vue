@@ -7,7 +7,7 @@
 			</div>
 			<div class="preview-body">
 				<div v-if="displayLinks.length === 0" class="empty-state">
-					No links to preview
+					{{ t('dashlink', 'No links to preview') }}
 				</div>
 				<div
 					v-else

@@ -8,7 +8,7 @@
 			@dragleave.prevent="isDragging = false"
 			@click="triggerFileInput">
 			<div v-if="previewUrl || currentIcon" class="icon-preview">
-				<img :src="previewUrl || currentIcon" alt="Icon preview">
+				<img :src="previewUrl || currentIcon" :alt="t('dashlink', 'Icon preview')">
 				<button
 					v-if="linkId"
 					type="button"
@@ -19,8 +19,8 @@
 			</div>
 			<div v-else class="upload-placeholder">
 				<Upload :size="32" />
-				<span>Click or drag to upload icon</span>
-				<span class="hint">PNG, JPG, SVG up to 2MB</span>
+				<span>{{ t('dashlink', 'Click or drag to upload icon') }}</span>
+				<span class="hint">{{ t('dashlink', 'PNG, JPG, SVG up to 2MB') }}</span>
 			</div>
 		</div>
 
@@ -40,6 +40,7 @@ import Close from 'vue-material-design-icons/Close.vue'
 import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import { showError } from '../utils/notifications.js'
+import { translate as t } from '@nextcloud/l10n'
 
 export default defineComponent({
 	name: 'UserIconUploader',
@@ -124,7 +125,7 @@ export default defineComponent({
 			} catch (error) {
 				// Clear preview on error
 				previewUrl.value = null
-				showError('Failed to upload icon: ' + error.message)
+				showError(t('dashlink', 'Failed to upload icon: {message}', { message: error.message }))
 			}
 		}
 
@@ -144,7 +145,7 @@ export default defineComponent({
 
 				emit('removed', response.data)
 			} catch (error) {
-				showError('Failed to remove icon: ' + error.message)
+				showError(t('dashlink', 'Failed to remove icon: {message}', { message: error.message }))
 			}
 		}
 

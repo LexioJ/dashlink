@@ -1,44 +1,44 @@
 <template>
 	<form class="link-form" @submit.prevent="handleSubmit" @keydown.enter="handleEnterKey">
 		<div class="form-group">
-			<label for="title">Title *</label>
+			<label for="title">{{ t('dashlink', 'Title') }} *</label>
 			<input
 				id="title"
 				v-model="formData.title"
 				type="text"
 				required
-				placeholder="My Website">
+				:placeholder="t('dashlink', 'My Website')">
 		</div>
 
 		<div class="form-group">
-			<label for="url">URL *</label>
+			<label for="url">{{ t('dashlink', 'URL') }} *</label>
 			<input
 				id="url"
 				v-model="formData.url"
 				type="url"
 				required
-				placeholder="https://example.com">
+				:placeholder="t('dashlink', 'https://example.com')">
 		</div>
 
 		<div class="form-group">
-			<label for="description">Description</label>
+			<label for="description">{{ t('dashlink', 'Description') }}</label>
 			<textarea
 				id="description"
 				v-model="formData.description"
 				rows="3"
-				placeholder="Optional description shown on hover" />
+				:placeholder="t('dashlink', 'Optional description shown on hover')" />
 		</div>
 
 		<div class="form-group">
-			<label for="target">Open in</label>
+			<label for="target">{{ t('dashlink', 'Open in') }}</label>
 			<select id="target" v-model="formData.target">
-				<option value="_blank">New tab</option>
-				<option value="_self">Same tab</option>
+				<option value="_blank">{{ t('dashlink', 'New tab') }}</option>
+				<option value="_self">{{ t('dashlink', 'Same tab') }}</option>
 			</select>
 		</div>
 
 		<div class="form-group">
-			<label>Icon</label>
+			<label>{{ t('dashlink', 'Icon') }}</label>
 			<IconUploader
 				ref="iconUploaderRef"
 				:link-id="link?.id"
@@ -49,17 +49,17 @@
 		</div>
 
 		<div class="form-group">
-			<label>Visible to Groups</label>
+			<label>{{ t('dashlink', 'Visible to Groups') }}</label>
 			<GroupPicker
 				v-model="formData.groupsObjects"
-				hint="Leave empty to show to all users" />
+				:hint="t('dashlink', 'Leave empty to show to all users')" />
 		</div>
 
 		<div class="form-group">
 			<NcCheckboxRadioSwitch
 				v-model="enabledSwitch"
 				type="switch">
-				Enabled
+				{{ t('dashlink', 'Enabled') }}
 			</NcCheckboxRadioSwitch>
 		</div>
 
@@ -73,10 +73,10 @@
 
 		<div class="form-actions">
 			<NcButton type="secondary" @click="$emit('cancel')">
-				Cancel
+				{{ t('dashlink', 'Cancel') }}
 			</NcButton>
 			<NcButton type="primary" native-type="submit">
-				{{ link ? 'Update' : 'Create' }}
+				{{ link ? t('dashlink', 'Update') : t('dashlink', 'Create') }}
 			</NcButton>
 		</div>
 	</form>

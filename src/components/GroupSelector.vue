@@ -1,7 +1,7 @@
 <template>
 	<div class="group-selector">
 		<div class="hint">
-			Leave empty to show to all users
+			{{ t('dashlink', 'Leave empty to show to all users') }}
 		</div>
 		<div v-if="groups.length > 0" class="groups-list">
 			<label
@@ -17,7 +17,7 @@
 			</label>
 		</div>
 		<div v-else class="no-groups">
-			No groups available
+			{{ t('dashlink', 'No groups available') }}
 		</div>
 	</div>
 </template>

@@ -1,16 +1,16 @@
 <template>
 	<div class="effect-selector">
 		<label class="selector-label">
-			Hover Effect
+			{{ t('dashlink', 'Hover Effect') }}
 			<span class="hint">
-				Animation style when hovering over links (for entries with a description)
+				{{ t('dashlink', 'Animation style when hovering over links (for entries with a description)') }}
 			</span>
 		</label>
 
 		<NcSelect
 			v-model="selectedEffect"
 			:options="effects"
-			:placeholder="'Select effect...'"
+			:placeholder="t('dashlink', 'Select effect...')"
 			:clearable="false"
 			label="name"
 			@update:modelValue="onSelectionChange" />

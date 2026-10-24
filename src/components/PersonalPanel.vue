@@ -1,15 +1,15 @@
 <template>
 	<div class="dashlink-personal">
 		<div class="personal-header">
-			<h2>My Links</h2>
-			<p class="subtitle">Manage your personal dashboard links</p>
+			<h2>{{ t('dashlink', 'My Links') }}</h2>
+			<p class="subtitle">{{ t('dashlink', 'Manage your personal dashboard links') }}</p>
 		</div>
 
 		<div class="personal-layout">
 			<div class="personal-main">
 				<!-- Link Count and Limit -->
 				<div class="link-count-section">
-					<span class="link-count">{{ linkCount }} / {{ linkLimit }} links used</span>
+					<span class="link-count">{{ t('dashlink', '{linkCount} / {linkLimit} links used', { linkCount, linkLimit }) }}</span>
 					<div class="progress-bar">
 						<div class="progress-fill" :style="{ width: progressPercent + '%' }" />
 					</div>
@@ -18,7 +18,7 @@
 				<!-- Links Management -->
 				<div class="links-section">
 					<div class="section-header">
-						<h3>Links</h3>
+						<h3>{{ t('dashlink', 'Links') }}</h3>
 						<div class="section-actions">
 							<NcButton
 								type="secondary"
@@ -26,7 +26,7 @@
 								<template #icon>
 									<Upload :size="20" />
 								</template>
-								Import
+								{{ t('dashlink', 'Import') }}
 							</NcButton>
 							<NcButton
 								type="secondary"
@@ -34,7 +34,7 @@
 								<template #icon>
 									<Download :size="20" />
 								</template>
-								Export
+								{{ t('dashlink', 'Export') }}
 							</NcButton>
 							<NcButton
 								type="primary"
@@ -44,7 +44,7 @@
 								<template #icon>
 									<Plus :size="20" />
 								</template>
-								Add Link
+								{{ t('dashlink', 'Add Link') }}
 							</NcButton>
 						</div>
 					</div>
@@ -56,7 +56,7 @@
 						@change="handleFileSelected">
 
 					<div v-if="links.length === 0" class="empty-state">
-						<p>No personal links yet. Click "Add Link" to create one.</p>
+						<p>{{ t('dashlink', 'No personal links yet. Click "Add Link" to create one.') }}</p>
 					</div>
 
 					<div v-else class="links-list">
@@ -148,7 +148,7 @@
 					v-if="showLinkForm"
 					@close="closeLinkForm">
 					<div class="modal-content">
-						<h2>{{ editingLink ? 'Edit Link' : 'Add Link' }}</h2>
+						<h2>{{ editingLink ? t('dashlink', 'Edit Link') : t('dashlink', 'Add Link') }}</h2>
 						<UserLinkForm
 							:link="editingLink"
 							@save="handleSaveLink"
@@ -160,8 +160,8 @@
 
 			<div class="personal-sidebar">
 				<div class="preview-info">
-					<h3>Preview</h3>
-					<p class="hint">Your links will appear in the dashboard widget after admin links.</p>
+					<h3>{{ t('dashlink', 'Preview') }}</h3>
+					<p class="hint">{{ t('dashlink', 'Your links will appear in the dashboard widget after admin links.') }}</p>
 				</div>
 				<WidgetPreview :links="previewLinks" :effect="hoverEffect" title="DashLink" />
 			</div>
@@ -255,14 +255,14 @@ export default defineComponent({
 			try {
 				if (editingLink.value) {
 					await updateLink(editingLink.value.id, linkData)
-					showSuccess('Link updated successfully')
+					showSuccess(t('dashlink', 'Link updated successfully'))
 				} else {
 					await createLink(linkData)
-					showSuccess('Link created successfully')
+					showSuccess(t('dashlink', 'Link created successfully'))
 				}
 				closeLinkForm()
 			} catch (error) {
-				showError('Failed to save link: ' + error.message)
+				showError(t('dashlink', 'Failed to save link: {message}', { message: error.message }))
 			}
 		}
 
@@ -274,12 +274,12 @@ export default defineComponent({
 		}
 
 		async function confirmDelete(link) {
-			if (confirm(`Are you sure you want to delete "${link.title}"?`)) {
+			if (confirm(t('dashlink', 'Are you sure you want to delete "{title}"?', { title: link.title }))) {
 				try {
 					await deleteLink(link.id)
-					showSuccess('Link deleted successfully')
+					showSuccess(t('dashlink', 'Link deleted successfully'))
 				} catch (error) {
-					showError('Failed to delete link: ' + error.message)
+					showError(t('dashlink', 'Failed to delete link: {message}', { message: error.message }))
 				}
 			}
 		}
@@ -287,9 +287,9 @@ export default defineComponent({
 		async function toggleEnabled(link) {
 			try {
 				await updateLink(link.id, { enabled: !link.enabled })
-				showSuccess(link.enabled ? 'Link disabled' : 'Link enabled')
+				showSuccess(link.enabled ? t('dashlink', 'Link disabled') : t('dashlink', 'Link enabled'))
 			} catch (error) {
-				showError('Failed to update link: ' + error.message)
+				showError(t('dashlink', 'Failed to update link: {message}', { message: error.message }))
 			}
 		}
 
@@ -381,9 +381,9 @@ export default defineComponent({
 			try {
 				const linkIds = newOrder.map(l => l.id)
 				await updateOrder(linkIds)
-				showSuccess('Link order updated')
+				showSuccess(t('dashlink', 'Link order updated'))
 			} catch (error) {
-				showError('Failed to update order: ' + error.message)
+				showError(t('dashlink', 'Failed to update order: {message}', { message: error.message }))
 				await fetchLinks()
 			}
 
@@ -402,9 +402,9 @@ export default defineComponent({
 				link.click()
 				document.body.removeChild(link)
 				URL.revokeObjectURL(url)
-				showSuccess('Links exported successfully')
+				showSuccess(t('dashlink', 'Links exported successfully'))
 			} catch (error) {
-				showError('Failed to export links: ' + error.message)
+				showError(t('dashlink', 'Failed to export links: {message}', { message: error.message }))
 			}
 		}
 
@@ -418,15 +418,15 @@ export default defineComponent({
 
 			try {
 				const result = await importLinks(file)
-				const message = `Import complete: ${result.imported} imported, ${result.skipped} skipped`
+				const message = t('dashlink', 'Import complete: {imported} imported, {skipped} skipped', { imported: result.imported, skipped: result.skipped })
 				if (result.errors && result.errors.length > 0) {
-					showError(message + `. Errors: ${result.errors.join(', ')}`)
+					showError(message + t('dashlink', '. Errors: {errors}', { errors: result.errors.join(', ') }))
 				} else {
 					showSuccess(message)
 				}
 				await fetchLinks()
 			} catch (error) {
-				showError('Failed to import links: ' + error.message)
+				showError(t('dashlink', 'Failed to import links: {message}', { message: error.message }))
 			} finally {
 				event.target.value = ''
 			}
