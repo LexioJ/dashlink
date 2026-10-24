@@ -80,6 +80,7 @@ class LinkService {
 		$link->setGroups($source->getGroups());
 		$link->setPosition($source->getPosition() + 1);
 		$link->setEnabled($source->getEnabled());
+		$link->setIsSuggestion($source->getIsSuggestion());
 		$link->setCreatedAt(new \DateTime());
 		$link->setUpdatedAt(new \DateTime());
 

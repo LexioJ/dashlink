@@ -115,7 +115,8 @@ class LinkController extends Controller {
 		array $groups = [],
 		int $position = 0,
 		int $enabled = 1,
-		?string $iconPath = null
+		?string $iconPath = null,
+		?bool $isSuggestion = null
 	): JSONResponse {
 		try {
 			$data = [
@@ -129,6 +130,9 @@ class LinkController extends Controller {
 			];
 			if ($iconPath !== null) {
 				$data['iconPath'] = $iconPath;
+			}
+			if ($isSuggestion !== null) {
+				$data['isSuggestion'] = $isSuggestion;
 			}
 			$link = $this->linkService->createLink($data);
 
@@ -151,7 +155,8 @@ class LinkController extends Controller {
 		?string $target = null,
 		?array $groups = null,
 		?int $position = null,
-		?int $enabled = null
+		?int $enabled = null,
+		?bool $isSuggestion = null
 	): JSONResponse {
 		try {
 			$data = [];
@@ -162,6 +167,7 @@ class LinkController extends Controller {
 			if ($groups !== null) $data['groups'] = $groups;
 			if ($position !== null) $data['position'] = $position;
 			if ($enabled !== null) $data['enabled'] = $enabled;
+			if ($isSuggestion !== null) $data['isSuggestion'] = $isSuggestion;
 
 			$link = $this->linkService->updateLink($id, $data);
 
