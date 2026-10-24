@@ -86,6 +86,29 @@ export function useLinks() {
 		}
 	}
 
+	async function checkHealth(id) {
+		try {
+			const response = await axios.post(
+				generateUrl('/apps/dashlink/api/v1/admin/links/{id}/health-check', { id })
+			)
+			const link = {
+				...response.data,
+				iconPath: response.data.iconPath,
+				iconUrl: response.data.iconPath
+					? generateUrl('/apps/dashlink/api/v1/links/{id}/icon', { id: response.data.id })
+					: null
+			}
+			const index = links.value.findIndex(l => l.id === id)
+			if (index !== -1) {
+				links.value[index] = link
+			}
+			return link
+		} catch (error) {
+			console.error('Failed to check link health:', error)
+			throw error
+		}
+	}
+
 	async function updateOrder(linkIds) {
 		try {
 			await axios.put(
@@ -138,6 +161,7 @@ export function useLinks() {
 		createLink,
 		updateLink,
 		deleteLink,
+		checkHealth,
 		updateOrder,
 		exportLinks,
 		importLinks,

@@ -63,6 +63,14 @@
 			</NcCheckboxRadioSwitch>
 		</div>
 
+		<div v-if="userLinksEnabled" class="form-group">
+			<NcCheckboxRadioSwitch
+				v-model="isSuggestionSwitch"
+				type="switch">
+				{{ t('dashlink', 'Suggest instead of show (users can add this link themselves)') }}
+			</NcCheckboxRadioSwitch>
+		</div>
+
 		<div class="form-actions">
 			<NcButton type="secondary" @click="$emit('cancel')">
 				Cancel
@@ -98,6 +106,10 @@ export default defineComponent({
 			type: Array,
 			default: () => [],
 		},
+		userLinksEnabled: {
+			type: Boolean,
+			default: true,
+		},
 	},
 	emits: ['save', 'cancel', 'icon-updated'],
 	setup(props, { emit }) {
@@ -109,6 +121,7 @@ export default defineComponent({
 			groups: [],
 			groupsObjects: [],
 			enabled: true,
+			isSuggestion: false,
 		})
 
 		const currentIconUrl = ref(null)
@@ -128,6 +141,7 @@ export default defineComponent({
 					groupsObjects: (link.groups || []).map(groupId => ({ id: groupId, displayname: groupId })),
 					// Convert enabled to boolean (backend uses 0/1)
 					enabled: Boolean(link.enabled ?? 1),
+					isSuggestion: link.isSuggestion || false,
 				}
 				currentIconUrl.value = link.iconUrl || null
 			} else {
@@ -139,6 +153,7 @@ export default defineComponent({
 					groups: [],
 					groupsObjects: [],
 					enabled: true,
+					isSuggestion: false,
 				}
 				currentIconUrl.value = null
 			}
@@ -155,6 +170,13 @@ export default defineComponent({
 			get: () => Boolean(formData.value.enabled),
 			set: (value) => {
 				formData.value.enabled = value
+			}
+		})
+
+		const isSuggestionSwitch = computed({
+			get: () => Boolean(formData.value.isSuggestion),
+			set: (value) => {
+				formData.value.isSuggestion = value
 			}
 		})
 
@@ -205,6 +227,7 @@ export default defineComponent({
 			iconUploaderRef,
 			pendingIconFile,
 			enabledSwitch,
+			isSuggestionSwitch,
 			handleSubmit,
 			handleEnterKey,
 			handleIconUploaded,

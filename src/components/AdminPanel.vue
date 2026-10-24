@@ -87,17 +87,29 @@
 						style="display: none"
 						@change="handleFileSelected">
 
-					<div v-if="links.length === 0" class="empty-state">
+					<div class="link-filter">
+						<NcButton :type="filter === 'all' ? 'primary' : 'secondary'" @click="filter = 'all'">
+							{{ t('dashlink', 'All') }}
+						</NcButton>
+						<NcButton :type="filter === 'links' ? 'primary' : 'secondary'" @click="filter = 'links'">
+							{{ t('dashlink', 'Dashboard links') }}
+						</NcButton>
+						<NcButton :type="filter === 'suggestions' ? 'primary' : 'secondary'" @click="filter = 'suggestions'">
+							{{ t('dashlink', 'Suggestions') }}
+						</NcButton>
+					</div>
+
+					<div v-if="filteredLinks.length === 0" class="empty-state">
 						<p>No links yet. Click "Add Link" to create one.</p>
 					</div>
 
 					<div v-else class="links-list">
 						<div
-							v-for="(link, index) in sortedLinks"
+							v-for="(link, index) in filteredLinks"
 							:key="link.id"
 							class="link-item"
 							:class="{ 'dragging': draggingId === link.id, 'drag-over': dragOverId === link.id }"
-							draggable="true"
+							:draggable="filter === 'all'"
 							@dragstart="handleDragStart(link, $event)"
 							@dragend="handleDragEnd"
 							@dragover.prevent="handleDragOver(link, $event)"
@@ -113,11 +125,30 @@
 									:alt="link.title"
 									class="link-icon">
 								<div class="link-details">
-									<strong>{{ link.title }}</strong>
+									<div class="link-title-row">
+										<strong>{{ link.title }}</strong>
+										<span v-if="filter === 'all' && link.isSuggestion" class="suggestion-tag">
+											{{ t('dashlink', 'Suggestion') }}
+										</span>
+									</div>
 									<span class="link-url">{{ link.url }}</span>
 								</div>
 							</div>
 							<div class="link-actions">
+								<span
+									class="health-badge"
+									:class="`health-badge--${link.healthStatus || 'unknown'}`"
+									:title="healthTooltip(link)">
+									{{ healthLabel(link.healthStatus) }}
+								</span>
+								<NcButton
+									type="tertiary"
+									:aria-label="t('dashlink', 'Check link now')"
+									@click="onCheckHealth(link)">
+									<template #icon>
+										<Refresh :size="16" />
+									</template>
+								</NcButton>
 								<NcButton
 									:type="link.enabled ? 'success' : 'secondary'"
 									@click="toggleEnabled(link)">
@@ -161,6 +192,7 @@
 						<LinkForm
 							:link="editingLink"
 							:groups="groups"
+							:user-links-enabled="userLinksEnabled"
 							@save="handleSaveLink"
 							@cancel="closeLinkForm"
 							@icon-updated="handleIconUpdated" />
@@ -198,7 +230,9 @@ import EyeOff from 'vue-material-design-icons/EyeOff.vue'
 import Download from 'vue-material-design-icons/Download.vue'
 import Upload from 'vue-material-design-icons/Upload.vue'
 import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
+import Refresh from 'vue-material-design-icons/Refresh.vue'
 import { generateUrl } from '@nextcloud/router'
+import { translate as t } from '@nextcloud/l10n'
 import axios from '@nextcloud/axios'
 import { showSuccess, showError } from '../utils/notifications.js'
 import EffectSelector from './EffectSelector.vue'
@@ -223,13 +257,14 @@ export default defineComponent({
 		Download,
 		Upload,
 		ContentCopy,
+		Refresh,
 		EffectSelector,
 		WidgetPreview,
 		LinkForm,
 		GroupPicker,
 	},
 	setup() {
-		const { links, fetchLinks, createLink, updateLink, deleteLink, updateOrder, exportLinks, importLinks } = useLinks()
+		const { links, fetchLinks, createLink, updateLink, deleteLink, checkHealth, updateOrder, exportLinks, importLinks } = useLinks()
 		const { groups, fetchGroups } = useGroups()
 		const { hoverEffect, widgetTitle, userLinksEnabled, userLinkLimit, fetchSettings, saveSettings: saveSettingsComposable } = useSettings()
 
@@ -240,9 +275,16 @@ export default defineComponent({
 		const draggingId = ref(null)
 		const dragOverId = ref(null)
 		const fileInput = ref(null)
+		const filter = ref('all')
 
 		const sortedLinks = computed(() => {
 			return [...links.value].sort((a, b) => a.position - b.position)
+		})
+
+		const filteredLinks = computed(() => {
+			if (filter.value === 'links') return sortedLinks.value.filter((l) => !l.isSuggestion)
+			if (filter.value === 'suggestions') return sortedLinks.value.filter((l) => l.isSuggestion)
+			return sortedLinks.value
 		})
 
 		// Clamp userLinkLimit to 1-50
@@ -389,6 +431,31 @@ export default defineComponent({
 				} catch (error) {
 					showError('Failed to delete link: ' + error.message)
 				}
+			}
+		}
+
+		function healthLabel(status) {
+			return {
+				ok: t('dashlink', 'OK'),
+				redirect: t('dashlink', 'Redirect'),
+				broken: t('dashlink', 'Broken'),
+				unknown: t('dashlink', 'Unknown'),
+			}[status || 'unknown']
+		}
+
+		function healthTooltip(link) {
+			if (!link.healthCheckedAt) {
+				return t('dashlink', 'Not checked yet')
+			}
+			const when = new Date(link.healthCheckedAt).toLocaleString()
+			return link.healthDetail ? `${link.healthDetail} — ${when}` : when
+		}
+
+		async function onCheckHealth(link) {
+			try {
+				await checkHealth(link.id)
+			} catch (error) {
+				showError('Failed to check link health: ' + error.message)
 			}
 		}
 
@@ -544,6 +611,8 @@ export default defineComponent({
 			userLinksEnabled,
 			userLinkLimit,
 			sortedLinks,
+			filter,
+			filteredLinks,
 			filteredPreviewLinks,
 			previewFilterGroups,
 			showLinkForm,
@@ -557,6 +626,9 @@ export default defineComponent({
 			handleIconUpdated,
 			confirmDelete,
 			toggleEnabled,
+			healthLabel,
+			healthTooltip,
+			onCheckHealth,
 			duplicateLink,
 			saveSettings,
 			debouncedSaveSettings,
@@ -713,10 +785,43 @@ export default defineComponent({
 	gap: 8px;
 }
 
+.link-filter {
+	display: flex;
+	gap: 8px;
+	margin-bottom: 16px;
+}
+
 .links-list {
 	display: flex;
 	flex-direction: column;
 	gap: 12px;
+}
+
+.health-badge {
+	border-radius: var(--border-radius-pill);
+	padding: 2px 8px;
+	font-size: 0.8em;
+	white-space: nowrap;
+}
+
+.health-badge--ok {
+	background: var(--color-success);
+	color: var(--color-primary-element-text);
+}
+
+.health-badge--redirect {
+	background: var(--color-warning);
+	color: var(--color-primary-element-text);
+}
+
+.health-badge--broken {
+	background: var(--color-error);
+	color: var(--color-primary-element-text);
+}
+
+.health-badge--unknown {
+	background: var(--color-background-dark);
+	color: var(--color-text-maxcontrast);
 }
 
 .link-item {
@@ -781,6 +886,21 @@ export default defineComponent({
 
 	strong {
 		font-weight: 500;
+	}
+
+	.link-title-row {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.suggestion-tag {
+		border-radius: var(--border-radius-pill);
+		padding: 2px 8px;
+		font-size: 0.75em;
+		background: var(--color-primary-element-light);
+		color: var(--color-main-text);
+		flex-shrink: 0;
 	}
 
 	.link-url {
