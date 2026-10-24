@@ -588,11 +588,10 @@ export default defineComponent({
 
 			try {
 				const result = await importLinks(file)
-				const message = t('dashlink', 'Import complete: {imported} imported, {skipped} skipped', { imported: result.imported, skipped: result.skipped })
 				if (result.errors && result.errors.length > 0) {
-					showError(message + t('dashlink', '. Errors: {errors}', { errors: result.errors.join(', ') }))
+					showError(t('dashlink', 'Import complete: {imported} imported, {skipped} skipped. Errors: {errors}', { imported: result.imported, skipped: result.skipped, errors: result.errors.join(', ') }))
 				} else {
-					showSuccess(message)
+					showSuccess(t('dashlink', 'Import complete: {imported} imported, {skipped} skipped', { imported: result.imported, skipped: result.skipped }))
 				}
 				await fetchLinks()
 			} catch (error) {
